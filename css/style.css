@@ -190,3 +190,17 @@ html[dir=rtl] .send{transform:scaleX(-1)}
 .opt span{font-size:3.6rem}.opt small{color:rgba(255,248,236,.7);font-size:.9rem}
 .opt:hover{background:rgba(255,255,255,.16)}.opt.ok{background:rgba(79,209,165,.4);border-color:var(--mint)}
 .opt.hint{border-color:var(--gold)}.opt.no{opacity:.45;animation:shake .35s}
+
+/* ===== Step 6: voice games ===== */
+.micnote{font-size:.8rem!important;color:rgba(255,248,236,.55)!important;max-width:36ch!important}
+.echo{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}
+.echo .big{font-size:6rem}.echo .big.mic{animation:pulse 1s infinite;border-radius:50%;padding:12px}
+.echo h2{font-size:2rem}
+.mpanel{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}
+.wbig{font-family:var(--display);font-size:3rem;color:var(--gold)}
+.mrow{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.pill.alt{background:linear-gradient(180deg,#ffa68c,var(--coral))}
+.mrow .pill{padding-inline:28px}
+.ran{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.ritem{font-size:11rem;line-height:1.1;min-height:12rem;transition:opacity .2s}.ritem.done{opacity:.15}
+@media(max-width:480px){.ritem{font-size:8rem;min-height:9rem}}
