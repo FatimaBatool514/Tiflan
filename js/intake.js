@@ -152,7 +152,7 @@
   $("#vToggle").onclick = (e) => { voiceOn = !voiceOn; e.currentTarget.textContent = voiceOn ? "🔊" : "🔇"; if (!voiceOn && window.speechSynthesis) speechSynthesis.cancel(); };
   $("#inClose").onclick = close;
   $("#inRedo").onclick = () => start(true);
-  $("#inCont").onclick = () => { close(); window.tiflanToast("step5"); };
+  $("#inCont").onclick = () => { close(); window.openGames ? window.openGames() : window.tiflanToast("step5"); };
   addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#intake").hidden) close(); });
   document.addEventListener("tiflan:lang", () => { if ($("#intake").hidden) return; $("#inText").placeholder = T("in_ph"); $("#aiBadge").textContent = cfg() ? T("in_ai_on") : T("in_ai_off"); if (idx < Q.length) chips(); else finish(false); });
   window.openIntake = () => start(false);

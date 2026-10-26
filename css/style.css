@@ -167,3 +167,26 @@ html[dir=rtl] .send{transform:scaleX(-1)}
 #inFin{display:flex;flex-direction:column;gap:12px;overflow:auto}#inFin[hidden]{display:none}
 .priv{color:rgba(255,248,236,.5);font-size:.74rem;line-height:1.5}
 #qChips .chip{font-size:.92rem;min-height:48px;padding:8px 16px}
+
+/* ===== Step 5: games ===== */
+.gm-head{display:flex;align-items:baseline;gap:12px;padding-inline-end:52px}.gm-head b{font-family:var(--display);font-size:1.4rem}.gm-head small{color:var(--gold)}
+.gm-body{flex:1;display:flex;flex-direction:column;min-height:0}
+.gm-intro,.gm-sum{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
+.gm-sum{align-items:stretch;text-align:start;justify-content:flex-start;overflow:auto}.gm-sum .pill{align-self:center}
+.gm-intro .big{font-size:5rem}.gm-intro h2{font-size:2.2rem}.gm-intro p{max-width:30ch;line-height:1.8;color:rgba(255,248,236,.85);font-size:1.1rem}
+.arena{position:relative;flex:1;min-height:340px;border-radius:26px;background:radial-gradient(circle,rgba(255,255,255,.1),rgba(255,255,255,.03));overflow:hidden;touch-action:manipulation}
+.fl{position:absolute;left:50%;top:50%;width:min(170px,42%);translate:-50% -50%;pointer-events:none}
+.hd{transform-box:fill-box;transform-origin:50% 80%;transition:transform .25s}.pup{transition:transform .2s}
+.arena.cheer .fl{animation:cheer .5s}
+.st{position:absolute;width:76px;height:76px;border-radius:50%;font-size:2.3rem;display:grid;place-items:center;border:3px solid rgba(255,255,255,.35);transition:transform .2s,box-shadow .2s}
+.st.c0{background:#7a54cc}.st.c1{background:#2f8fb5}.st.c2{background:#c8664d}
+.st.ok{background:var(--mint);transform:scale(1.2);box-shadow:0 0 24px var(--mint)}.st.hint{box-shadow:0 0 20px var(--gold);transform:scale(1.12)}
+.st.no{opacity:.4;animation:shake .35s}
+@keyframes shake{25%{translate:-6px}75%{translate:6px}}
+.rhyme{flex:1;display:flex;flex-direction:column;gap:18px;justify-content:center;align-items:stretch}
+.word{display:flex;flex-direction:column;align-items:center;gap:8px}.word .em{font-size:4.5rem}.word b{font-family:var(--display);font-size:2.2rem}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:12px}
+.opt{min-height:150px;border-radius:26px;border:3px solid var(--line);background:rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.opt span{font-size:3.6rem}.opt small{color:rgba(255,248,236,.7);font-size:.9rem}
+.opt:hover{background:rgba(255,255,255,.16)}.opt.ok{background:rgba(79,209,165,.4);border-color:var(--mint)}
+.opt.hint{border-color:var(--gold)}.opt.no{opacity:.45;animation:shake .35s}
