@@ -13,7 +13,8 @@
     clear() { try { localStorage.removeItem(KEY); } catch (e) {} }
   };
   let saved = store.get(), draft = saved || fresh();
-  window.Tiflan = { profile: () => saved, plan: () => (saved && saved.child.age <= 5 ? 4 : 6) };
+  window.Tiflan = { profile: () => saved, plan: () => (saved && saved.child.age <= 5 ? 4 : 6),
+    update: (fn) => { if (saved) { fn(saved); store.set(saved); } } };
 
   const valid = () => step === 0 ? draft.consent.play && draft.consent.mic
     : step === 1 ? !!draft.child.age : step === 2 ? !!draft.child.homeLang : true;
@@ -55,7 +56,7 @@
   $("#next").onclick = () => {
     if (!valid()) return;
     if (step === 2) { draft.consent.ts = Date.now(); saved = draft; store.set(saved); }
-    if (step === 3) { close(); document.dispatchEvent(new CustomEvent("tiflan:profile", { detail: saved })); window.tiflanToast("step4"); return; }
+    if (step === 3) { close(); document.dispatchEvent(new CustomEvent("tiflan:profile", { detail: saved })); (window.openIntake ? window.openIntake() : window.tiflanToast("step4")); return; }
     step++; render();
   };
   $("#wipe").onclick = () => { store.clear(); saved = null; draft = fresh(); close(); window.tiflanToast("deleted"); };

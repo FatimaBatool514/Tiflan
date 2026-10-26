@@ -129,12 +129,39 @@
     </div>
   </div>
 </div>
+<div class="sheet" id="intake" hidden role="dialog" aria-modal="true">
+  <div class="sheet-card wide">
+    <button class="x" id="inClose" type="button" aria-label="Close">✕</button>
+    <div class="agent-head">
+      <svg class="avatar" id="avatar" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="38" fill="#E9B872"/><ellipse cx="40" cy="48" rx="28" ry="22" fill="#FFF1D6"/><circle cx="28" cy="36" r="9" fill="#fff"/><circle cx="52" cy="36" r="9" fill="#fff"/><circle cx="28" cy="37" r="5" fill="#2B1B5E"/><circle cx="52" cy="37" r="5" fill="#2B1B5E"/><path d="M33 46h14c0 7-4 12-7 14-3-2-7-7-7-14z" fill="#FFC94D"/></svg>
+      <div class="ah"><b data-i18n="in_agent"></b><small id="inStatus"></small></div>
+      <button class="tog" id="vToggle" type="button" aria-label="Voice">🔊</button>
+    </div>
+    <div class="prog" id="inProg"></div>
+    <div class="chat" id="chat" aria-live="polite"></div>
+    <div class="chips" id="qChips"></div>
+    <div class="inrow" id="inRow">
+      <button class="mic" id="mic" type="button" aria-label="Microphone">🎤</button>
+      <input id="inText" type="text" autocomplete="off">
+      <button class="send" id="send" type="button">➤</button>
+    </div>
+    <div id="inFin" hidden>
+      <ul class="promises sum" id="inSum"></ul>
+      <p class="flagline" id="inFlags"></p><p class="sub" data-i18n="in_note"></p>
+      <div class="foot"><button type="button" class="ghost" id="inRedo" data-i18n="in_redo"></button>
+      <button type="button" class="pill" id="inCont"><span data-i18n="in_cont"></span><b>↗</b></button></div>
+    </div>
+    <small class="priv" id="aiBadge"></small><small class="priv" data-i18n="in_stt"></small>
+  </div>
+</div>
 <div class="toast" id="toast" role="status"></div>
   <span id="privacy"></span>
 </main>
 <script src="js/i18n.js"></script>
 <script src="js/i18n-onboard.js"></script>
+<script src="js/config.js"></script>
 <script src="js/onboarding.js"></script>
+<script src="js/intake.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
