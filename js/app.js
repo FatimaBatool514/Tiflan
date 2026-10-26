@@ -13,15 +13,14 @@
     $("#langBtn").textContent = I18N[l].langBtn;
     try { localStorage.setItem("tiflan-lang", l); } catch (e) {}
     renderReadings(true);
+    document.dispatchEvent(new Event("tiflan:lang"));
   }
   $("#langBtn").addEventListener("click", () => setLang(lang === "ar" ? "en" : "ar"));
 
   /* ---------- toast ---------- */
   const toast = $("#toast"); let tt;
-  document.querySelectorAll("[data-start]").forEach((b) => b.addEventListener("click", () => {
-    toast.textContent = I18N[lang].toast; toast.classList.add("show");
-    clearTimeout(tt); tt = setTimeout(() => toast.classList.remove("show"), 3200);
-  }));
+  window.tiflanToast = (key) => { toast.textContent = I18N[lang][key]; toast.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => toast.classList.remove("show"), 3200); };
+  document.querySelectorAll("[data-start]").forEach((b) => b.addEventListener("click", () => (window.openOnboarding ? window.openOnboarding() : window.tiflanToast("toast"))));
 
   /* ---------- falcon tracking ---------- */
   const svg = $("#falcon"), head = $("#head"), pupils = document.querySelectorAll(".pupil");

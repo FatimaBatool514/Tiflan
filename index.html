@@ -83,10 +83,58 @@
     <div class="nx"><span class="tag" data-i18n="nextTag"></span><b data-i18n="nextTitle"></b><small data-i18n="nextSub"></small></div>
   </aside>
 
-  <div class="toast" id="toast" role="status"></div>
+  <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true">
+  <div class="sheet-card">
+    <button class="x" id="shClose" type="button" aria-label="Close">✕</button>
+    <div class="guard"><i></i><span data-i18n="guard"></span></div>
+    <div class="prog" id="prog"><i></i><i></i><i></i><i></i></div>
+
+    <div class="pane" data-pane="0">
+      <h2 data-i18n="c_title"></h2><p class="sub" data-i18n="c_sub"></p>
+      <ul class="promises"><li data-i18n="p1"></li><li data-i18n="p2"></li><li data-i18n="p3"></li><li data-i18n="p4"></li></ul>
+      <label class="chk"><input type="checkbox" id="cPlay"><span data-i18n="c_play"></span></label>
+      <label class="chk"><input type="checkbox" id="cMic"><span data-i18n="c_mic"></span></label>
+      <label class="chk opt"><input type="checkbox" id="cCam"><span data-i18n="c_cam"></span></label>
+    </div>
+
+    <div class="pane" data-pane="1" hidden>
+      <h2 data-i18n="a_title"></h2><p class="sub" data-i18n="a_sub"></p>
+      <div class="chips ages">
+        <button type="button" class="chip" data-age="4">4</button><button type="button" class="chip" data-age="5">5</button>
+        <button type="button" class="chip" data-age="6">6</button><button type="button" class="chip" data-age="7">7</button>
+        <button type="button" class="chip" data-age="8">8</button>
+      </div>
+      <p class="sub" data-i18n="yrs"></p>
+    </div>
+
+    <div class="pane" data-pane="2" hidden>
+      <h2 data-i18n="g_title"></h2>
+      <h3 data-i18n="hl_q"></h3>
+      <div class="chips"><button type="button" class="chip" data-hl="ar" data-i18n="hl_ar"></button><button type="button" class="chip" data-hl="en" data-i18n="hl_en"></button><button type="button" class="chip" data-hl="both" data-i18n="hl_both"></button></div>
+      <h3 data-i18n="dialect_q"></h3>
+      <div class="chips"><button type="button" class="chip" data-dialect="gulf" data-i18n="d_gulf"></button><button type="button" class="chip" data-dialect="egy" data-i18n="d_egy"></button><button type="button" class="chip" data-dialect="lev" data-i18n="d_lev"></button><button type="button" class="chip" data-dialect="mag" data-i18n="d_mag"></button><button type="button" class="chip" data-dialect="msa" data-i18n="d_msa"></button><button type="button" class="chip" data-dialect="en" data-i18n="d_en"></button></div>
+      <h3 data-i18n="gender_q"></h3>
+      <div class="chips"><button type="button" class="chip" data-gender="girl" data-i18n="g_girl"></button><button type="button" class="chip" data-gender="boy" data-i18n="g_boy"></button></div>
+    </div>
+
+    <div class="pane" data-pane="3" hidden>
+      <h2 data-i18n="s_title"></h2>
+      <ul class="promises sum" id="sumBox"></ul>
+      <button type="button" class="ghost danger" id="wipe">🗑 <span data-i18n="del"></span></button>
+    </div>
+
+    <div class="foot">
+      <button type="button" class="ghost" id="back" hidden data-i18n="back"></button>
+      <button type="button" class="pill" id="next" disabled><span></span><b>↗</b></button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
   <span id="privacy"></span>
 </main>
 <script src="js/i18n.js"></script>
+<script src="js/i18n-onboard.js"></script>
+<script src="js/onboarding.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
