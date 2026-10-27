@@ -26,3 +26,5 @@ Open index.html in a browser, or enable GitHub Pages (Settings > Pages > Deploy 
 
 ## Change the name or texts
 All text is in js/i18n.js. The brand name is in index.html (class brand-en / brand-ar).
+
+- Fixes: fresh items every play, age tiers, Arabic/English word language choice, automatic speech checking in Games 3 and 4, new Game 6 (Sound Detective), results now open after the games, print report fixed.

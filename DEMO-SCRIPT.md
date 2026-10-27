@@ -16,13 +16,13 @@ Open the app with `?demo=1` at the end of the URL (or tap "Demo mode" on the fir
 - Thresholds are **prototype values** and need specialist review.
 - The agents are specialised modules. Only the optional chat replies use an LLM; the scoring is rule-based on purpose, so it is explainable.
 - Tracing check is simple shape overlap, not AI handwriting analysis.
-- Browser speech recognition may use a cloud service; Game 4 timing is analysed on the device.
+- Games 3 and 4 check speech automatically with the browser's speech recognition, which may use a cloud service and can mishear children. Results are labelled as a rough signal.
 
 ## Likely judge questions
 - *How accurate is it?* Not validated yet. The plan is a pilot with clinicians.
 - *Why not use an LLM to score?* Explainability and safety for health decisions.
 - *Is it private?* See the Privacy centre: local storage, no names or recordings, honest list of third parties.
-- *Dialects?* Gulf first; speech recognition quality varies, so the mother confirms word repetition.
+- *Dialects?* Gulf first; speech recognition quality varies, so we use the recogniser's best alternatives and label it a rough signal.
 
 ## Before the demo
 - [ ] Replace the EXAMPLE centers in `data/centers.js` with DHA-verified entries (or say clearly they are samples).

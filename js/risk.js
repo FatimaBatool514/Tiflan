@@ -7,13 +7,13 @@
     rhyme: { young: { low: 0.40, watch: 0.15 }, older: { low: 0.50, watch: 0.25 } },   // chance-adjusted accuracy, higher is better
     echo: { young: { low: 0.67, watch: 0.40 }, older: { low: 0.75, watch: 0.50 } },    // accuracy
     naming: { young: { low: 2.0, watch: 3.0 }, older: { low: 1.6, watch: 2.4 } },     // median seconds per item, lower is better
-    letters: { older: { low: 0.75, watch: 0.50 } }, rhythm: { older: { low: 0.60, watch: 0.35 } },
+    letters: { older: { low: 0.75, watch: 0.50 } }, firstsound: { older: { low: 0.50, watch: 0.25 } },
     attention: { acc: { low: 0.80, watch: 0.50 }, omissionsWatch: 2, omissionsFollow: 3, earlyWatchYoung: 6, earlyWatchOlder: 4 }
   };
   const hi = (v, t) => (v >= t.low ? 0 : v >= t.watch ? 1 : 2), lo = (v, t) => (v <= t.low ? 0 : v <= t.watch ? 1 : 2);
   const E = (ar, en) => ({ ar, en });
   const SK = { rhyme:E("الوعي بالأصوات","Sound awareness"), echo:E("الذاكرة الصوتية والنطق","Sound memory & speech"), naming:E("سرعة التسمية","Naming speed"),
-    attention:E("الانتباه","Attention"), letters:E("تمييز الحروف","Letter recognition"), rhythm:E("إيقاع المقاطع","Syllable rhythm") };
+    attention:E("الانتباه","Attention"), letters:E("تمييز الحروف","Letter recognition"), firstsound:E("الصوت الأول","First sound") };
   const SL = [E("جيد","Good"), E("نراقب","Watch"), E("يحتاج دعم","Needs support")];
   const OV = [E("مطمئن","Reassuring"), E("نراقب معاً","Keep watching"), E("يُنصح بمتابعة","Follow-up suggested")], ICON = ["🌟", "👀", "🧭"];
   const MSG = [
@@ -32,16 +32,16 @@
       S.push({ id:"rhyme", level:lv, ev:[E(`أجاب ${m.correct} من ${m.n} بشكل صحيح`,`${m.correct} of ${m.n} correct`), E(`بعد استبعاد التخمين: ${pc(Math.max(0, adj))}%`,`After removing lucky guesses: ${pc(Math.max(0, adj))}%`)] });
       tr("rhyme", `adjusted accuracy ${adj.toFixed(2)}`, lv); } else none("rhyme");
     // 2. Sound memory & speech (Silly Word Echo)
-    if (g.g3) { const m = g.g3.metrics, acc = m.correct / m.n, lv = hi(acc, TH.echo[band]), ls = Object.keys(m.byLen).map(Number).sort(), a = m.byLen[ls[0]], z = m.byLen[ls[ls.length - 1]];
-      const ev = [E(`كرّر ${m.correct} من ${m.n} كلمات غريبة بشكل صحيح`,`Repeated ${m.correct} of ${m.n} made-up words correctly`)];
+    if (g.g3 && g.g3.metrics.scored !== 0) { const m = g.g3.metrics, acc = m.correct / (m.scored != null ? m.scored : m.n), lv = hi(acc, TH.echo[band]), ls = Object.keys(m.byLen).map(Number).sort(), a = m.byLen[ls[0]], z = m.byLen[ls[ls.length - 1]];
+      const ev = [E(`كرّر ${m.correct} من ${m.scored != null ? m.scored : m.n} كلمات غريبة بشكل صحيح`,`Repeated ${m.correct} of ${m.scored != null ? m.scored : m.n} made-up words correctly`)];
       if (ls.length > 1) ev.push(E(`كلمات من ${ls[0]} مقاطع: ${a.c}/${a.n} · من ${ls[ls.length - 1]} مقاطع: ${z.c}/${z.n}`,`${ls[0]}-syllable words: ${a.c}/${a.n} · ${ls[ls.length - 1]}-syllable words: ${z.c}/${z.n}`));
       if (ia.clarity && ia.clarity.f > 0) ev.push(E("ذكرتِ أن وضوح كلامه أحياناً صعب","You mentioned his or her speech is sometimes hard to understand"));
       S.push({ id:"echo", level:lv, ev }); tr("echo", `accuracy ${acc.toFixed(2)}`, lv); } else none("echo");
     // 3. Naming speed (Quick Naming Race)
     if (g.g4 && g.g4.metrics.medianRT != null) { const m = g.g4.metrics, sec = m.medianRT / 1000; let lv = lo(sec, TH.naming[band]); const ev = [E(`الزمن المعتاد لتسمية الصورة: ${sec.toFixed(1)} ثانية`,`Typical time to name a picture: ${sec.toFixed(1)} s`)];
       if (m.slow) ev.push(E(`${m.slow} صور احتاجت أكثر من 3 ثوانٍ`,`${m.slow} pictures took over 3 seconds`));
-      if (m.errors >= 3) { lv = Math.max(lv, 1); ev.push(E(`أخطاء أبلغتِ عنها: ${m.errors === 4 ? "4+" : m.errors}`,`Mistakes you reported: ${m.errors === 4 ? "4+" : m.errors}`)); }
-      const low = (m.voiceTrials || 0) < m.n / 2; if (low) ev.push(E("القياس اعتمد على ضغطك على الزر، فالدقة أقل","Timing relied on your button taps, so accuracy is lower"));
+      if (m.errors >= 3) { lv = Math.max(lv, 1); ev.push(E(`أخطاء رصدها التطبيق: ${m.errors === 4 ? "4+" : m.errors}`,`Mistakes detected by the app: ${m.errors === 4 ? "4+" : m.errors}`)); }
+      const low = (m.scored != null ? m.scored : m.voiceTrials || 0) < m.n / 2; if (low) ev.push(E("تعذّر فحص عدد من الإجابات بالتعرف على الكلام، فالدقة أقل","Many answers could not be checked by speech recognition, so accuracy is lower"));
       S.push({ id:"naming", level:lv, ev, lowConf:low }); tr("naming", `median ${sec.toFixed(2)} s`, lv); } else none("naming");
     // 4. Attention (Follow the Falcon + parent report)
     if (g.g1) { const m = g.g1.metrics, acc = m.correct / m.n, th = TH.attention; let lv = hi(acc, th.acc);
@@ -58,9 +58,9 @@
         if (top.length) ev.push(E(`حروف اختلطت: ${top.join("، ")}`,`Letters mixed up: ${top.join(", ")}`));
         ev.push(E(`دقة التتبع التقريبية: ${pc(F)}%`,`Rough tracing accuracy: ${pc(F)}%`));
         S.push({ id:"letters", level:lv, ev }); tr("letters", `accuracy ${acc.toFixed(2)}`, lv); } else none("letters");
-      if (g.g6) { const m = g.g6.metrics, acc = m.correct / m.n, lv = hi(acc, TH.rhythm.older);
-        S.push({ id:"rhythm", level:lv, ev:[E(`${m.correct} من ${m.n} كلمات بعدد المقاطع الصحيح`,`${m.correct} of ${m.n} words with the right syllable count`), E(`متوسط خطأ العدّ: ${m.meanAbsError} مقطع`,`Average counting error: ${m.meanAbsError} syllable(s)`)] });
-        tr("rhythm", `exact ${acc.toFixed(2)}`, lv); } else none("rhythm");
+      if (g.g6) { const m = g.g6.metrics, acc = m.correct / m.n, adj = Math.max(-1, (acc - 1 / 3) / (2 / 3)), lv = hi(adj, TH.firstsound.older);
+        S.push({ id:"firstsound", level:lv, ev:[E(`${m.correct} من ${m.n} أصوات أولى صحيحة`,`${m.correct} of ${m.n} first sounds matched correctly`), E(`بعد استبعاد التخمين: ${pc(Math.max(0, adj))}%`,`After removing lucky guesses: ${pc(Math.max(0, adj))}%`)] });
+        tr("firstsound", `adjusted accuracy ${adj.toFixed(2)}`, lv); } else none("firstsound");
     }
     const done = S.filter((s) => s.level !== null), fam = ia.family && ia.family.v === "yes", ctx = (p.intake && p.intake.flags) || 0;
     const points = done.reduce((a, s) => a + s.level, 0) + (ctx >= 3 ? 1 : 0) + (fam ? 1 : 0);
@@ -70,6 +70,7 @@
     if (ia.senses && ia.senses.v === "yes") notes.push(E("ذكرتِ التهابات أذن أو حاجة لنظارة. الأفضل فحص السمع والبصر أولاً لأنهما يؤثران على النتائج.","You mentioned ear infections or glasses. Please check hearing and vision first, as they can affect these results."));
     if (done.length < S.length) notes.push(E("بعض الألعاب لم تُلعب بعد، لذلك النتيجة أقل اكتمالاً.","Some games were not played, so this result is less complete."));
     if (S.some((s) => s.lowConf)) notes.push(E("قياس السرعة اعتمد جزئياً على الضغط اليدوي.","Speed was partly measured from manual taps."));
+    if ((g.g3 && g.g3.metrics.scored) || (g.g4 && g.g4.metrics.scored)) notes.push(E("نطق طفلك فُحص بالتعرف التلقائي على الكلام وقد يخطئ مع الأطفال، فاعتبري هذه النتائج إشارة تقريبية.","Your child's speech was checked by automatic speech recognition, which can mishear children. Treat those results as a rough signal."));
     return { ts: Date.now(), band, overall, points, skills: S, notes, trace: T, fam, ctx };
   }
 

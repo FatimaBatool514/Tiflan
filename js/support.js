@@ -30,11 +30,12 @@
       { t:X("ابنِ وقلّد","Build and copy"), d:X("ابني شكل بسيط من المكعبات وخلي طفلج يقلّده. زيدي القطع شوي شوي.","Build a simple shape with blocks and let your child copy it. Add pieces slowly."), m:7 }],
     letters: [{ t:X("الكتابة بالرمل","Sand writing"), d:X("اكتبي حرف بإصبعج على صينية فيها ملح أو رمل وخلي طفلج يقلّد، ويقول اسم الحرف وصوته.","Write a letter with your finger in a tray of salt or sand and let your child copy it, saying its name and sound."), m:7 },
       { t:X("محقق النقاط","Dot detective"), d:X("اكتبي ب ت ث على ورقة، وخلي طفلج يعدّ النقاط ويقول وين مكانها: تحت، فوق، فوقين.","Write ب ت ث on paper and let your child count the dots and say where they are: below, one above, two above."), m:5 }],
-    rhythm: [{ t:X("صفّقوا للأسماء","Clap the names"), d:X("صفّقوا لمقاطع أسماء العائلة والأكل. بعدين امشوا خطوة لكل مقطع.","Clap the syllables of family names and foods. Then step once for each syllable."), m:5 },
-      { t:X("طبلة المقاطع","Syllable drum"), d:X("اضربوا على الطاولة بعدد مقاطع الكلمة، وخلي طفلج يخمّن الكلمة من الإيقاع.","Drum the syllables of a word on the table and let your child guess the word from the rhythm."), m:5 }]
+    firstsound: [{ t:X("أنا أشوف بصوت...","I spy with sound..."), d:X("قولي «أنا أشوف شي يبدأ بصوت س» وخلي طفلج يلقى أشياء في البيت أول صوتها نفس الصوت.","Say “I spy something that starts with /s/” and let your child find things in the house that start with the same sound."), m:5 },
+      { t:X("صندوق الأصوات","Sound box"), d:X("حطي 3 أشياء في صندوق، اثنين أولهم نفس الصوت، وخلي طفلج يلقى الغريب.","Put 3 objects in a box, two starting with the same sound, and let your child find the odd one out."), m:5 }]
   };
   const READ = { t:X("قراءة مشتركة","Shared reading"), d:X("10 دقائق كل يوم: اقرأي قصة مصوّرة، أشيري للكلمات، واسألي طفلج أسئلة عنها.","10 minutes every day: read a picture book, point to the words, and ask your child questions about it."), m:10 };
-  const SVC = { rhyme:["slp","learning"], echo:["slp"], naming:["slp","learning"], letters:["learning"], rhythm:["slp"], attention:["dev"] };
+  const SVC = { rhyme:["slp","learning"], echo:["slp"], naming:["slp","learning"], letters:["learning"], firstsound:["slp","learning"], attention:["dev"] };
+  document.body.appendChild($("#printArea"));   // must be a direct child of body, or printing shows a blank page
   const prof = () => window.Tiflan.profile(), SK = () => window.Tiflan.SK;
   let tab = "plan", map = null, markers = [], cf = { svc: new Set(), area: "", near: null };
 
@@ -115,8 +116,8 @@
       <h3>${H.raw}</h3><ul class="raw">${raw}</ul><p class="disc">${H.disc}</p></div>`;
   }
   function printReport(lang) {
-    window.Tiflan.log("Support Agent", "doctor report created (" + lang + ")"); $("#printArea").innerHTML = report(lang); document.body.classList.add("printing");
-    const off = () => { document.body.classList.remove("printing"); removeEventListener("afterprint", off); }; addEventListener("afterprint", off);
+    window.Tiflan.log("Support Agent", "doctor report created (" + lang + ")"); $("#printArea").innerHTML = report(lang); document.body.classList.add("printing"); const ov = document.body.style.overflow; document.body.style.overflow = "visible";
+    const off = () => { document.body.classList.remove("printing"); document.body.style.overflow = ov; removeEventListener("afterprint", off); }; addEventListener("afterprint", off);
     setTimeout(() => window.print(), 100);
   }
   function renderReport() {

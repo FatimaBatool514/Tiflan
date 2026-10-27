@@ -265,3 +265,8 @@ html[dir=rtl] .mk{translate:50% 0}
 .logbox b{color:var(--mint)}
 #demoBar{position:fixed;inset-block-start:10px;inset-inline:0;margin:auto;width:fit-content;max-width:94vw;z-index:50;display:flex;gap:12px;align-items:center;padding:8px 8px 8px 18px;border-radius:99px;background:var(--gold);color:var(--indigo);font-weight:600;font-size:.85rem;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 #demoBar button{min-height:36px;padding:0 16px;border-radius:99px;background:var(--indigo);color:var(--gold)}
+
+/* ===== fixes ===== */
+.st.c3{background:#4a9a6e}
+.lcs{display:flex;flex-direction:column;align-items:center;gap:6px}.exs{display:flex;gap:18px;font-size:2.4rem;text-align:center}.exs span{padding:8px 16px;border-radius:18px;background:rgba(255,255,255,.1);font-size:1rem;line-height:1.3}.exs span{font-size:2.2rem}
+@media print{html{background:#fff!important}body.printing{overflow:visible!important;height:auto!important;display:block!important}}
