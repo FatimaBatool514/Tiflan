@@ -204,3 +204,12 @@ html[dir=rtl] .send{transform:scaleX(-1)}
 .ran{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
 .ritem{font-size:11rem;line-height:1.1;min-height:12rem;transition:opacity .2s}.ritem.done{opacity:.15}
 @media(max-width:480px){.ritem{font-size:8rem;min-height:9rem}}
+
+/* ===== Step 7: letters + syllables ===== */
+.tl{font-family:var(--body);font-weight:700;font-size:7rem;line-height:1.2;color:var(--gold)}
+.opt.letter span{font-family:var(--body);font-weight:700;font-size:3.6rem}
+.tr{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+#cv{touch-action:none;border-radius:24px;background:rgba(255,255,255,.07);border:2px dashed var(--line);max-width:100%}
+.clap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}.clap .big{font-size:6rem}
+.clapbtn{width:150px;height:150px;border-radius:50%;font-size:4.5rem;background:linear-gradient(180deg,#ffd978,var(--gold));box-shadow:0 10px 30px rgba(255,201,77,.35);transition:transform .08s;touch-action:manipulation}
+.clapbtn:disabled{opacity:.4}.clapbtn.hit{transform:scale(.88)}

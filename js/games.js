@@ -23,6 +23,12 @@
     listen:"Listen...", nowyou:"Your turn!", ask:"Did your child say it correctly?", heard:"Heard:", yes:"✓ Correct", no:"✗ Not quite", again:"🔁 Try once more",
     named:"Named it ✓", errq:"How many pictures did they get wrong or not know?",
     s3:"{c} of {n} correct · you confirmed {k} yourself", s4:"typical naming time {m}s · slow items {s} · mistakes {e}" });
+  Object.assign(S.ar, { t5:"توأم الحروف", i5:"شوف الحرف الكبير، واختر الحرف اللي نفسه بالضبط! بعدين ارسم الحروف بإصبعك.", t6:"صفّق للمقاطع", i6:"اسمع الكلمة، وصفّق مرة لكل جزء منها!",
+    same:"أي حرف هو نفسه بالضبط؟", tr:"ارسم الحرف بإصبعك", clear:"امسح", done:"تم ✓", clapdone:"انتهيت",
+    s5:"{c} من {n} حروف صحيحة · زمن الاستجابة {m} ث · دقة التتبع التقريبية {q}%", s6:"{c} من {n} كلمات بعدد المقاطع الصحيح · متوسط خطأ العدّ {a}" });
+  Object.assign(S.en, { t5:"Letter Twins", i5:"Look at the big letter and tap the one that is exactly the same! Then trace letters with your finger.", t6:"Clap the Syllables", i6:"Listen to the word and clap once for each part!",
+    same:"Which one is exactly the same?", tr:"Trace the letter with your finger", clear:"Clear", done:"Done ✓", clapdone:"I'm done",
+    s5:"{c} of {n} letters correct · response {m}s · rough tracing accuracy {q}%", s6:"{c} of {n} words with the right syllable count · average counting error {a}" });
   const T = (k) => S[L()][k];
   const STT = { gulf:"ar-AE", egy:"ar-EG", lev:"ar-JO", mag:"ar-MA", msa:"ar-SA", en:"en-US" };
 
@@ -234,8 +240,98 @@
       meanRT: rnd(mean), rtCV: mean && s != null ? +(s / mean).toFixed(2) : null, byCat: cats, voiceTrials: trials.filter((x) => x.src === "voice").length } };
   }
 
+  /* ===== Game 5: Letter Twins (match look-alike letters + trace) ===== */
+  const GRP = {
+    ar: [["ب","ت","ث","ن"],["ج","ح","خ"],["ع","غ"],["ف","ق"],["س","ش"],["د","ذ"],["ر","ز"],["ص","ض"]],
+    en: [["b","d","p","q"],["m","w"],["n","u"],["h","n"],["a","e"],["f","t"],["i","j"],["s","z"]]
+  };
+  const TRC = { ar: ["ب","ت","ج","خ","ع","ف","ن","ش"], en: ["b","d","p","q","m","w"] };
+  async function trace(c, letter) {
+    c.body.innerHTML = `<div class="tr"><h2>${T("tr")}</h2><canvas id="cv"></canvas><div class="mrow"><button class="ghost" id="cl" type="button">${T("clear")}</button>
+      <button class="pill" id="dn" type="button"><span>${T("done")}</span></button></div></div>`;
+    const cv = $("#cv"), W = Math.max(200, Math.min(300, c.body.clientWidth - 24)); cv.width = cv.height = W; const x = cv.getContext("2d");
+    let strokes = [], cur = null, t0 = null;
+    const guide = (g, z) => { g.textAlign = "center"; g.textBaseline = "middle"; g.font = `700 ${z * 0.7}px "Readex Pro",system-ui,sans-serif`; g.fillText(letter, z / 2, z / 2); };
+    const redraw = () => {
+      x.clearRect(0, 0, W, W); x.fillStyle = "rgba(255,255,255,.22)"; guide(x, W);
+      x.strokeStyle = "#FFC94D"; x.lineWidth = W * 0.05; x.lineCap = x.lineJoin = "round";
+      strokes.forEach((s) => { x.beginPath(); s.forEach((p, i) => (i ? x.lineTo(p[0] * W, p[1] * W) : x.moveTo(p[0] * W, p[1] * W))); if (s.length === 1) x.lineTo(s[0][0] * W + 0.1, s[0][1] * W); x.stroke(); });
+    };
+    const pt = (e) => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
+    cv.onpointerdown = (e) => { cv.setPointerCapture(e.pointerId); if (t0 == null) t0 = performance.now(); cur = [pt(e)]; strokes.push(cur); redraw(); };
+    cv.onpointermove = (e) => { if (cur) { cur.push(pt(e)); redraw(); } };
+    cv.onpointerup = cv.onpointercancel = () => { cur = null; };
+    $("#cl").onclick = () => { strokes = []; t0 = null; redraw(); }; redraw();
+    await new Promise((r) => ($("#dn").onclick = r)); c.check();
+    const Z = 64, g = document.createElement("canvas"), k = document.createElement("canvas"); g.width = g.height = k.width = k.height = Z;
+    const gx = g.getContext("2d"), kx = k.getContext("2d"); gx.fillStyle = "#fff"; guide(gx, Z);
+    kx.strokeStyle = "#fff"; kx.lineWidth = Z * 0.06; kx.lineCap = kx.lineJoin = "round";
+    strokes.forEach((s) => { kx.beginPath(); s.forEach((p, i) => (i ? kx.lineTo(p[0] * Z, p[1] * Z) : kx.moveTo(p[0] * Z, p[1] * Z))); if (s.length === 1) kx.lineTo(s[0][0] * Z + 0.1, s[0][1] * Z); kx.stroke(); });
+    const gd = gx.getImageData(0, 0, Z, Z).data, kd = kx.getImageData(0, 0, Z, Z).data, gm = new Uint8Array(Z * Z), im = new Uint8Array(Z * Z), G = [], I = [];
+    for (let i = 0; i < Z * Z; i++) { if (gd[i * 4 + 3] > 60) { gm[i] = 1; G.push(i); } if (kd[i * 4 + 3] > 60) { im[i] = 1; I.push(i); } }
+    const near = (m, i, r) => { const x0 = i % Z, y0 = (i / Z) | 0; for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { const xx = x0 + dx, yy = y0 + dy; if (xx >= 0 && yy >= 0 && xx < Z && yy < Z && m[yy * Z + xx]) return true; } return false; };
+    const precision = I.length ? I.filter((i) => near(gm, i, 3)).length / I.length : 0, recall = G.length ? G.filter((i) => near(im, i, 3)).length / G.length : 0;
+    return { letter, strokes: strokes.length, ms: t0 ? Math.round(performance.now() - t0) : null, precision: +precision.toFixed(2), recall: +recall.toFixed(2) };
+  }
+  async function game5(c) {
+    const sc = L() === "en" ? "en" : "ar", trials = [], N = GRP[sc].length;
+    for (let t = 0; t < N; t++) {
+      c.prog(t, N + 3); c.check();
+      const G = shuffle(GRP[sc])[t % N], target = G[rand(G.length)], opts = shuffle(G);
+      c.body.innerHTML = `<div class="rhyme"><div class="word"><small class="sub">${T("same")}</small><span class="tl">${target}</span></div><div class="choices" id="ch"></div></div>`;
+      let resolve = null; const ch = $("#ch");
+      opts.forEach((l, i) => { const b = document.createElement("button"); b.className = "opt letter"; b.type = "button"; b.innerHTML = `<span>${l}</span>`; b.onclick = () => resolve && resolve(i); ch.appendChild(b); });
+      const onset = performance.now();
+      const k = await new Promise((r) => { resolve = r; setTimeout(() => r(-1), 12000); });
+      const rt = Math.round(performance.now() - onset); c.check();
+      const bs = ch.children; opts.forEach((l, i) => { if (l === target) bs[i].classList.add(k === i ? "ok" : "hint"); else if (i === k) bs[i].classList.add("no"); });
+      trials.push({ t, target, chosen: k < 0 ? null : opts[k], correct: k >= 0 && opts[k] === target, omitted: k < 0, rt: k < 0 ? null : rt, options: opts.length });
+      await wait(900);
+    }
+    const traces = [];
+    for (const l of shuffle(TRC[sc]).slice(0, 3)) { c.prog(N + traces.length, N + 3); traces.push(await trace(c, l)); c.check(); }
+    c.prog(N + 3, N + 3);
+    const good = trials.filter((x) => x.correct).map((x) => x.rt), avg = (k) => +(traces.reduce((s, x) => s + x[k], 0) / traces.length).toFixed(2);
+    return { trials: trials.concat(), traces, metrics: { n: N, correct: trials.filter((x) => x.correct).length, medianRT: rnd(med(good)), script: sc,
+      confusions: trials.filter((x) => x.chosen && !x.correct).map((x) => x.target + ">" + x.chosen), tracePrecision: avg("precision"), traceRecall: avg("recall"), traceStrokes: avg("strokes") } };
+  }
+
+  /* ===== Game 6: Clap the Syllables ===== */
+  const SYL = {
+    ar: [["شمس","☀️",1],["بيت","🏠",1],["فيل","🐘",1],["باب","🚪",1],["قطة","🐱",2],["جمل","🐪",2],["قمر","🌙",2],["كتاب","📖",2],["وردة","🌹",2],["نجمة","⭐",2],
+      ["سمكة","🐟",3],["تفاحة","🍎",3],["سيارة","🚗",3],["فراشة","🦋",3],["شجرة","🌳",3],["طائرة","✈️",3],["برتقالة","🍊",4],["سلحفاة","🐢",4]],
+    en: [["sun","☀️",1],["cat","🐱",1],["fish","🐟",1],["house","🏠",1],["apple","🍎",2],["tiger","🐯",2],["flower","🌸",2],["rabbit","🐰",2],
+      ["banana","🍌",3],["elephant","🐘",3],["butterfly","🦋",3],["tomato","🍅",3],["watermelon","🍉",4],["alligator","🐊",4],["caterpillar","🐛",4]]
+  };
+  async function game6(c) {
+    const bank = SYL[L() === "en" ? "en" : "ar"], used = {}, trials = [];
+    const items = [1, 1, 2, 2, 3, 3, 4, 4].map((s) => { const it = shuffle(bank.filter((x) => x[2] === s && !used[x[0]]))[0]; used[it[0]] = 1; return it; });
+    const N = items.length;
+    for (let t = 0; t < N; t++) {
+      c.prog(t, N); c.check(); const [w, e, syl] = items[t]; let replays = 0;
+      c.body.innerHTML = `<div class="clap"><div class="big">${e}</div><small class="sub">${w}</small><button class="chip" id="hr" type="button">🔊 ${T("replay")}</button>
+        <button class="clapbtn" id="cb" type="button" disabled>👏</button><button class="ghost" id="cd" type="button">${T("clapdone")}</button></div>`;
+      $("#hr").onclick = () => { replays++; speak(w); };
+      await speak(w); c.check(); const cb = $("#cb"); cb.disabled = false; const tEnd = performance.now(), taps = [];
+      await new Promise((res) => {
+        let tm = null; const fin = () => { clearTimeout(tm); res(); };
+        cb.onpointerdown = () => { taps.push(Math.round(performance.now() - tEnd)); cb.classList.add("hit"); setTimeout(() => cb.classList.remove("hit"), 120); clearTimeout(tm); tm = setTimeout(fin, 2300); };
+        $("#cd").onclick = fin; setTimeout(fin, 20000);
+      });
+      c.check();
+      const itis = taps.slice(1).map((v, i) => v - taps[i]), m = itis.length ? itis.reduce((a, b) => a + b, 0) / itis.length : null, s = sd(itis);
+      trials.push({ t, word: w, syl, taps: taps.length, error: taps.length - syl, exact: taps.length === syl, latency: taps.length ? taps[0] : null, iti: itis, itiCV: m && s != null ? +(s / m).toFixed(2) : null, replays });
+      await wait(400);
+    }
+    c.prog(N, N);
+    const bySyl = {}; trials.forEach((x) => { const b = (bySyl[x.syl] = bySyl[x.syl] || { c: 0, n: 0 }); b.n++; if (x.exact) b.c++; });
+    return { trials, metrics: { n: N, correct: trials.filter((x) => x.exact).length, meanAbsError: +(trials.reduce((a, x) => a + Math.abs(x.error), 0) / N).toFixed(2),
+      over: trials.filter((x) => x.error > 0).length, under: trials.filter((x) => x.error < 0).length, rhythmCV: med(trials.filter((x) => x.itiCV != null).map((x) => x.itiCV)), bySyl } };
+  }
+
   const GAMES = [{ id:"g1", icon:"⭐", t:"t1", i:"i1", run:game1, line:"s1" }, { id:"g2", icon:"🐣", t:"t2", i:"i2", run:game2, line:"s2" },
-    { id:"g3", icon:"🦜", t:"t3", i:"i3", note:"n3", run:game3, line:"s3" }, { id:"g4", icon:"🏁", t:"t4", i:"i4", note:"n4", run:game4, line:"s4" }];
+    { id:"g3", icon:"🦜", t:"t3", i:"i3", note:"n3", run:game3, line:"s3" }, { id:"g4", icon:"🏁", t:"t4", i:"i4", note:"n4", run:game4, line:"s4" },
+    { id:"g5", icon:"🔤", t:"t5", i:"i5", run:game5, line:"s5" }, { id:"g6", icon:"👏", t:"t6", i:"i6", run:game6, line:"s6" }];
   const fmt = (s, m) => s.replace(/\{(\w)\}/g, (_, k) => m[k]);
 
   async function play(i, results, my) {
@@ -263,10 +359,10 @@
     if (window.speechSynthesis) speechSynthesis.cancel();
     $("#gmProg").innerHTML = ""; $("#gmCount").textContent = "";
     const rows = results.map(({ g, res }) => { const m = res.metrics;
-      return `<li><b>${T(g.t)}</b><br>${fmt(T(g.line), { c: m.correct, n: m.n, m: sec(m.medianRT), p: m.premature, r: m.replays, k: m.confirmed, s: m.slow, e: m.errors })}</li>`; }).join("");
+      return `<li><b>${T(g.t)}</b><br>${fmt(T(g.line), { c: m.correct, n: m.n, m: sec(m.medianRT), p: m.premature, r: m.replays, k: m.confirmed, s: m.slow, e: m.errors, q: Math.round(((m.tracePrecision || 0) + (m.traceRecall || 0)) * 50), a: m.meanAbsError })}</li>`; }).join("");
     $("#gmBody").innerHTML = `<div class="gm-sum"><h2>${T("fin")}</h2><p class="sub">${T("note")}</p><ul class="promises sum">${rows}</ul>
       <p class="priv">${T("saved")}</p><button class="pill" id="gmDone" type="button"><span>${T("cont")}</span><b>↗</b></button></div>`;
-    $("#gmDone").onclick = () => { const p = window.Tiflan.profile(); close(); window.tiflanToast(p && p.child.age <= 5 ? "step8" : "step7"); };
+    $("#gmDone").onclick = () => { const p = window.Tiflan.profile(); close(); window.tiflanToast("step8"); };
   }
   function close() { tok++; $("#game").hidden = true; document.body.style.overflow = ""; if (window.speechSynthesis) speechSynthesis.cancel(); }
   window.openGames = () => {

@@ -9,6 +9,7 @@ Early learning screening for children aged 4–8 (Arabic + English). Static site
 - Step 4: intake voice agent (js/intake.js, js/config.js, worker/gemini-proxy.js)
 - Step 5: games engine, Game 1 Follow the Falcon, Game 2 Rhyme Nest (js/games.js)
 - Step 6: Game 3 Silly Word Echo, Game 4 Quick Naming Race (in js/games.js)
+- Step 7: Game 5 Letter Twins (match + tracing), Game 6 Clap the Syllables (in js/games.js)
 
 ## Optional: turn on cloud AI (free)
 1. Get a Gemini key at aistudio.google.com.
