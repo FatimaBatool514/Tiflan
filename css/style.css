@@ -213,3 +213,23 @@ html[dir=rtl] .send{transform:scaleX(-1)}
 .clap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}.clap .big{font-size:6rem}
 .clapbtn{width:150px;height:150px;border-radius:50%;font-size:4.5rem;background:linear-gradient(180deg,#ffd978,var(--gold));box-shadow:0 10px 30px rgba(255,201,77,.35);transition:transform .08s;touch-action:manipulation}
 .clapbtn:disabled{opacity:.4}.clapbtn.hit{transform:scale(.88)}
+
+/* ===== Step 8: results ===== */
+.res-card{width:min(760px,100%);height:auto;max-height:calc(100svh - 32px)}
+.guard.proto{color:var(--gold);background:rgba(255,201,77,.1);line-height:1.5;border-radius:14px;padding:8px 14px;font-size:.78rem}
+.ov{display:flex;gap:18px;align-items:center;padding:20px;border-radius:26px;background:linear-gradient(135deg,color-mix(in srgb,var(--c) 28%,transparent),rgba(255,255,255,.05));border:2px solid var(--c)}
+.ovi{font-size:3.6rem;flex:none}.ov small{color:rgba(255,248,236,.7)}.ov h2{font-size:2rem}.ov p{line-height:1.8;margin:6px 0 12px}
+.note2{padding:10px 14px;border-radius:14px;background:rgba(255,201,77,.1);line-height:1.7;font-size:.92rem}
+#rsBody{display:flex;flex-direction:column;gap:14px}#rsBody h3{font-family:var(--display);font-size:1.3rem;margin-top:6px}
+.skgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.sk{padding:16px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid var(--line);display:flex;flex-direction:column;gap:10px}.sk.off{opacity:.55}
+.skh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.lv{padding:4px 12px;border-radius:99px;color:#1d1240;font-weight:600;font-size:.82rem}
+.meter{position:relative;display:flex;height:10px;border-radius:5px;overflow:visible}
+.meter i{flex:1;opacity:.55}.meter i:first-child{border-radius:5px 0 0 5px}.meter i:nth-child(3){border-radius:0 5px 5px 0}
+.mk{position:absolute;top:-4px;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--indigo);translate:-50% 0}
+html[dir=rtl] .mk{translate:50% 0}
+.sk ul{padding-inline-start:18px;display:flex;flex-direction:column;gap:4px;font-size:.88rem;line-height:1.6;color:rgba(255,248,236,.85)}
+.why{padding:12px 16px;border-radius:16px;background:rgba(255,255,255,.05)}.why summary{cursor:pointer;font-weight:600;min-height:32px}
+.why h4{margin:12px 0 6px;color:var(--gold);font-size:.9rem}.why ul{padding-inline-start:18px;font-size:.85rem;line-height:1.7}.why .mono{font-family:ui-monospace,monospace;font-size:.76rem;direction:ltr;text-align:left}
+@media(max-width:560px){.ov{flex-direction:column;text-align:center}}

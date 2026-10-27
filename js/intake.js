@@ -117,6 +117,7 @@
     $("#qChips").hidden = $("#inRow").hidden = true; $("#inFin").hidden = false;
     const ul = $("#inSum"); ul.innerHTML = "";
     Q.forEach((q) => { const a = ans[q.id]; if (!a) return; const li = document.createElement("li"); li.textContent = (a.note && a.v === "note" ? a.note : a.label) + " · " + q[L()].replace(/[؟?].*$/, ""); ul.appendChild(li); });
+    $("#inRes").hidden = !(window.Tiflan.profile() && window.Tiflan.profile().results);
     $("#inFlags").textContent = T("in_flags") + ": " + flags;
     if (save) agent(CLOSE[L()]);
     $("#inProg").querySelectorAll("i").forEach((i) => i.classList.add("on"));
@@ -152,6 +153,7 @@
   $("#vToggle").onclick = (e) => { voiceOn = !voiceOn; e.currentTarget.textContent = voiceOn ? "🔊" : "🔇"; if (!voiceOn && window.speechSynthesis) speechSynthesis.cancel(); };
   $("#inClose").onclick = close;
   $("#inRedo").onclick = () => start(true);
+  $("#inRes").onclick = () => { close(); window.openResults && window.openResults(); };
   $("#inCont").onclick = () => { close(); window.openGames ? window.openGames() : window.tiflanToast("step5"); };
   addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#intake").hidden) close(); });
   document.addEventListener("tiflan:lang", () => { if ($("#intake").hidden) return; $("#inText").placeholder = T("in_ph"); $("#aiBadge").textContent = cfg() ? T("in_ai_on") : T("in_ai_off"); if (idx < Q.length) chips(); else finish(false); });

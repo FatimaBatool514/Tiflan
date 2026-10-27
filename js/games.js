@@ -65,6 +65,7 @@
     });
   }
 
+  window.TiflanSpeak = speak;
   const FACE = `<svg class="fl" viewBox="0 0 200 200" aria-hidden="true"><g class="hd"><path d="M82 34c-4-14 4-24 9-28 1 8 5 12 9 14 4-2 8-6 9-14 5 4 13 14 9 28z" fill="#C98D4B"/>
     <circle cx="100" cy="100" r="82" fill="#E9B872"/><ellipse cx="100" cy="112" rx="66" ry="54" fill="#FFF1D6"/>
     <circle cx="52" cy="126" r="11" fill="#FF8A6B" opacity=".45"/><circle cx="148" cy="126" r="11" fill="#FF8A6B" opacity=".45"/>
