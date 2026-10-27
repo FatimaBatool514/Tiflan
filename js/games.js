@@ -25,6 +25,16 @@
       s1:"{c} of {n} correct · typical response {m}s · early taps {p}", s2:"{c} of {n} correct · typical response {m}s · replays {r}",
       s3:"{c} of {s} words correct (automatic check)", s4:"typical naming time {m}s · mistakes detected {e} of {s}", s5:"{c} of {n} letters correct · response {m}s · rough tracing accuracy {q}%", s6:"{c} of {n} first sounds correct · response {m}s" }
   };
+  Object.assign(S.ar, { retry:"حاولي مرة ثانية", skipg:"تخطي اللعبة", skipitem:"ولا يهمك، ننتقل للتالي!", novoice:"ما عندنا صوت لهذه اللغة على الجهاز، الكلمة مكتوبة هنا.",
+    mictest:"اختبار الميكروفون", micsay:"قولي أي كلمة...", micgo:"تكلمي الحين 🎤", micheard:"سمعنا:", voicetest:"اختبار الصوت", voiceok:"✓ سمعتِ الكلمة؟ الصوت يعمل.", voicebad:"لا يوجد صوت لهذه اللغة على هذا الجهاز، ستظهر الكلمات مكتوبة.",
+    e_denied:"الميكروفون غير مسموح. فعّليه من إعدادات المتصفح (رمز القفل بجانب العنوان) ثم حاولي مرة ثانية.", e_net:"التعرف على الكلام يحتاج اتصالاً بالإنترنت. تأكدي من الاتصال ثم حاولي.",
+    e_cap:"الميكروفون مشغول أو غير متوفر. أغلقي التطبيقات الأخرى التي تستخدمه.", e_unsup:"هذا المتصفح لا يدعم التعرف على الكلام. استخدمي Chrome على أندرويد أو على الكمبيوتر.",
+    e_lang:"هذه اللغة غير مدعومة للتعرف على الكلام في هذا الجهاز.", e_silent:"ما وصلنا صوت. تأكدي أن الميكروفون يعمل، وأن الغرفة هادئة، وخلي الطفل يتكلم بصوت أعلى وقريب من الجهاز." });
+  Object.assign(S.en, { retry:"Try again", skipg:"Skip this game", skipitem:"No worries, let's go to the next one!", novoice:"This device has no voice for this language, so the word is shown here.",
+    mictest:"Test microphone", micsay:"Say anything...", micgo:"Speak now 🎤", micheard:"Heard:", voicetest:"Test voice", voiceok:"✓ Did you hear the word? The voice works.", voicebad:"No voice for this language on this device. Words will be shown in writing.",
+    e_denied:"Microphone access is blocked. Allow it in the browser settings (lock icon next to the address), then try again.", e_net:"Speech recognition needs an internet connection. Please check it and try again.",
+    e_cap:"The microphone is busy or missing. Close other apps that use it.", e_unsup:"This browser does not support speech recognition. Please use Chrome on Android or desktop.",
+    e_lang:"This language is not supported for speech recognition on this device.", e_silent:"We didn't receive any sound. Check that the microphone works, the room is quiet, and ask your child to speak louder and closer to the device." });
   const T = (k) => S[L()][k];
   const STT = { gulf:"ar-AE", egy:"ar-EG", lev:"ar-JO", mag:"ar-MA", msa:"ar-SA", en:"en-US" };
 
@@ -52,15 +62,25 @@
   const langPlan = (n) => (CL === "mix" ? shuffle(Array.from({ length: n }, (_, i) => (i % 2 ? "en" : "ar"))) : Array(n).fill(CL));
   const gather = (n, fn) => { const pl = langPlan(n), out = []; ["ar", "en"].forEach((l) => { const c = pl.filter((x) => x === l).length; if (c) fn(l, c).forEach((it) => out.push({ l, it })); }); return shuffle(out); };
 
-  function speak(text, lang) {
+  const voicesReady = () => new Promise((res) => {
+    const v = speechSynthesis.getVoices(); if (v.length) return res(v);
+    const t = setTimeout(() => res(speechSynthesis.getVoices()), 1200);
+    speechSynthesis.addEventListener("voiceschanged", () => { clearTimeout(t); res(speechSynthesis.getVoices()); }, { once: true });
+  });
+  // Resolves {ok, voice}. ok=false means the word was probably NOT heard (no voice for the language, or it ended instantly).
+  async function speak(text, lang) {
+    if (!window.speechSynthesis) { await wait(1200); return { ok: false, voice: false }; }
+    const vs = await voicesReady(), l = sttFor(lang);
+    const voice = vs.find((v) => v.lang.replace("_", "-") === l) || vs.find((v) => v.lang.slice(0, 2) === l.slice(0, 2)) || null;
+    if (speechSynthesis.speaking || speechSynthesis.pending) { speechSynthesis.cancel(); await wait(150); }
+    if (speechSynthesis.paused) speechSynthesis.resume();
     return new Promise((res) => {
-      if (!window.speechSynthesis) return setTimeout(res, 1200);
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text), l = sttFor(lang); u.lang = l; u.rate = 0.9;
-      const vs = speechSynthesis.getVoices();
-      u.voice = vs.find((v) => v.lang.replace("_", "-") === l) || vs.find((v) => v.lang.slice(0, 2) === l.slice(0, 2)) || null;
-      let done = false; const fin = () => { if (!done) { done = true; res(); } };
-      u.onend = u.onerror = fin; setTimeout(fin, 4500); speechSynthesis.speak(u);
+      const u = new SpeechSynthesisUtterance(text); u.lang = l; u.rate = 0.9; if (voice) u.voice = voice;
+      const t0 = performance.now(); let done = false, tm = null;
+      const fin = (ok) => { if (!done) { done = true; clearTimeout(tm); res({ ok, voice: !!voice }); } };
+      u.onend = () => fin(!!voice && performance.now() - t0 > 250);
+      u.onerror = (e) => { if (e.error === "interrupted" || e.error === "canceled") return; fin(false); };
+      tm = setTimeout(() => fin(false), 6000); speechSynthesis.speak(u);
     });
   }
   window.TiflanSpeak = (t) => speak(t, L() === "en" ? "en" : "ar");
@@ -68,21 +88,43 @@
 
   /* ---------- automatic speech checking ---------- */
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition; let micOK = true;
-  function listen(lang, ms, onReady) {
+  const esc = (x) => String(x == null ? "" : x).replace(/[&<>]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]));
+  // Continuous recognition that ends itself after a short silence, starts only when the mic is really capturing, and reports why it failed.
+  function listen(lang, ms, onReady, endGap = 1400) {
     return new Promise((res) => {
-      if (!SR || !micOK) return res({ alts: [], latency: null, none: true });
-      const rec = new SR(); let alts = [], first = null, sp = null, t0 = null, ended = false;
-      rec.lang = sttFor(lang); rec.interimResults = true; rec.maxAlternatives = 5;
-      const end = () => { if (ended) return; ended = true; try { rec.stop(); } catch (e) {} res({ alts, latency: sp != null ? sp : first, none: false, started: t0 != null }); };
-      rec.onstart = () => { t0 = performance.now(); if (onReady) onReady(); };
-      rec.onspeechstart = () => { if (sp == null && t0 != null) sp = Math.round(performance.now() - t0); };
-      rec.onresult = (e) => { if (first == null && t0 != null) first = Math.round(performance.now() - t0); alts = [];
-        for (const r of e.results) for (let k = 0; k < r.length; k++) alts.push(r[k].transcript);
-        if (e.results[e.results.length - 1].isFinal) end(); };
-      rec.onerror = (e) => { if (e.error === "not-allowed" || e.error === "service-not-allowed") micOK = false; end(); };
-      rec.onend = end; setTimeout(end, ms);
-      try { rec.start(); } catch (e) { end(); }
+      if (!SR || !micOK) return res({ alts: [], latency: null, none: true, err: !SR ? "unsupported" : "denied" });
+      // Browsers often end a recognition session early (or refuse a dialect code), so we restart it until time runs out.
+      const langs = [sttFor(lang)].concat(lang === "en" ? [] : ["ar-SA", "ar-EG"]).filter((x, i, a) => a.indexOf(x) === i);
+      let rec = null, alts = [], first = null, sp = null, t0 = null, ended = false, last = 0, ready = false, err = "", restarts = 0, li = 0, iv = null, to = null;
+      const endAt = performance.now() + ms;
+      const finish = () => { if (ended) return; ended = true; clearInterval(iv); clearTimeout(to); try { rec && rec.stop(); } catch (e) {}
+        if (!ready && !err) err = "ended-early"; setTimeout(() => res({ alts, latency: sp != null ? sp : first, none: false, err, restarts }), 350); };
+      const mark = () => { if (!ready) { ready = true; t0 = performance.now(); if (onReady) onReady(); } };
+      const go = () => {
+        if (ended) return;
+        rec = new SR(); rec.lang = langs[li]; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 5;
+        rec.onaudiostart = mark; rec.onstart = () => setTimeout(mark, 450);
+        rec.onspeechstart = () => { if (sp == null && t0 != null) sp = Math.round(performance.now() - t0); };
+        rec.onresult = (e) => {
+          if (first == null && t0 != null) first = Math.round(performance.now() - t0); last = performance.now();
+          const segs = [...e.results], joined = segs.map((r) => r[0].transcript).join(" "), lastR = segs[segs.length - 1]; alts = [joined];
+          for (let k = 1; k < lastR.length; k++) alts.push(segs.slice(0, -1).map((r) => r[0].transcript).concat(lastR[k].transcript).join(" "));
+        };
+        rec.onerror = (e) => { err = e.error;
+          if (e.error === "not-allowed" || e.error === "service-not-allowed") { micOK = false; finish(); }
+          else if (e.error === "language-not-supported" && li < langs.length - 1) { li++; err = ""; setTimeout(go, 100); }
+          else if (e.error !== "no-speech" && e.error !== "aborted") finish(); };
+        rec.onend = () => { if (ended) return; if (!alts.length && performance.now() < endAt - 1200 && restarts < 4 && !/language-not-supported/.test(err)) { restarts++; setTimeout(go, 150); } else finish(); };
+        try { rec.start(); } catch (e) { err = "start-failed"; finish(); }
+      };
+      iv = setInterval(() => { if (alts.length && performance.now() - last > endGap) finish(); }, 100); to = setTimeout(finish, ms);
+      go();
     });
+  }
+  const errMsg = (e) => T(e === "not-allowed" || e === "service-not-allowed" || e === "denied" ? "e_denied" : e === "network" ? "e_net" : e === "audio-capture" ? "e_cap" : e === "unsupported" ? "e_unsup" : e === "language-not-supported" ? "e_lang" : "e_silent");
+  async function micHelp(c, err) {
+    c.body.innerHTML = `<div class="gm-intro"><div class="big">🎤</div><p>${errMsg(err)}</p><div class="mrow"><button class="pill" id="mhR" type="button"><span>${T("retry")}</span></button><button class="ghost" id="mhS" type="button">${T("skipg")}</button></div></div>`;
+    return new Promise((r) => { $("#mhR").onclick = () => r("retry"); $("#mhS").onclick = () => r("skip"); });
   }
   const lev = (a, b) => { const d = Array.from({ length: a.length + 1 }, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j;
     for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; };
@@ -194,24 +236,34 @@
   /* ---------- Game 3: Silly Word Echo (checked automatically) ---------- */
   async function game3(c) {
     const age = A(c.age), lens = LENS[age], tier = age <= 5 ? 1 : 2, pl = langPlan(lens.length), used = new Set(), trials = [];
-    const items = lens.map((s, i) => { let w; do { w = genWord(pl[i], s, tier); } while (used.has(w)); used.add(w); return { w, s, l: pl[i] }; }); const N = items.length; let unavailable = !SR;
+    const items = lens.map((s, i) => { let w; do { w = genWord(pl[i], s, tier); } while (used.has(w)); used.add(w); return { w, s, l: pl[i] }; }); const N = items.length; let unavailable = !SR, fails = 0;
+    if (!SR) { await micHelp(c, "unsupported"); }
     for (let t = 0; t < N && !unavailable; t++) {
-      c.prog(t, N); c.check(); const { w, s, l } = items[t]; let tries = 0, res;
+      c.prog(t, N); c.check(); const { w, s, l } = items[t]; let tries = 0, res = null;
       for (;;) {
-        c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("listen")}</h2></div>`; await speak(w, l); c.check();
-        c.body.innerHTML = `<div class="echo"><div class="big mic">🎤</div><h2>${T("nowyou")}</h2></div>`;
-        res = await listen(l, 6500); c.check();
-        if (res.none) { unavailable = true; break; }
-        if (!res.alts.length && res.latency == null && tries < 1) { tries++; c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("again")}</h2></div>`; await wait(1100); continue; }
+        c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("listen")}</h2></div>`;
+        const sp = await speak(w, l); c.check();
+        if (!sp.ok) { c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("listen")}</h2><div class="wbig" dir="auto">${esc(w)}</div><p class="micnote">${T("novoice")}</p></div>`; await wait(2600); }
+        else await wait(450);
+        c.check();
+        res = await listen(l, 7500, () => { c.body.innerHTML = `<div class="echo"><div class="big mic">🎤</div><h2>${T("nowyou")}</h2></div>`; }); c.check();
+        if (res.none && !micOK) { const m = await micHelp(c, res.err || "denied"); if (m === "skip") { unavailable = true; break; } micOK = true; continue; }
+        if (res.alts.length) break;
+        if (++tries < 2) { c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("again")}</h2></div>`; await wait(1200); continue; }
         break;
       }
       if (unavailable) break;
-      const sc = res.alts.length ? wordScore(res.alts, w, l) : null;
-      trials.push({ t, lang: l, word: w, syl: s, heard: res.alts[0] || "", score: sc == null ? null : +sc.toFixed(2), correct: sc == null ? null : sc >= PASS, omitted: !res.alts.length, latency: res.latency, tries });
-      c.body.innerHTML = `<div class="echo"><div class="big">🌟</div><h2>${T("good")}</h2></div>`; await wait(700);
+      if (!res.alts.length) {
+        trials.push({ t, lang: l, word: w, syl: s, heard: "", score: null, correct: null, omitted: true, latency: res.latency, tries, err: res.err });
+        c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("skipitem")}</h2></div>`; await wait(900);
+        if (++fails >= 2) { const m = await micHelp(c, res.err || "silent"); if (m === "skip") { unavailable = true; break; } micOK = true; fails = 0; }
+        continue;
+      }
+      fails = 0; const sc = wordScore(res.alts, w, l);
+      trials.push({ t, lang: l, word: w, syl: s, heard: res.alts[0], score: +sc.toFixed(2), correct: sc >= PASS, omitted: false, latency: res.latency, tries });
+      c.body.innerHTML = `<div class="echo"><div class="big">🌟</div><h2>${T("good")}</h2><small class="heard" dir="auto">${esc(res.alts[0])}</small></div>`; await wait(900);
     }
     c.prog(N, N);
-    if (unavailable) { c.body.innerHTML = `<div class="gm-intro"><div class="big">🔇</div><p>${T("nospeech")}</p></div>`; await wait(2500); }
     const sc = trials.filter((x) => x.correct !== null), byLen = {}; sc.forEach((x) => { const b = (byLen[x.syl] = byLen[x.syl] || { c: 0, n: 0 }); b.n++; if (x.correct) b.c++; });
     return { trials, metrics: { n: N, scored: sc.length, correct: sc.filter((x) => x.correct).length, omissions: trials.filter((x) => x.omitted).length,
       medianLatency: rnd(med(trials.filter((x) => x.latency != null).map((x) => x.latency))), byLen, unavailable } };
@@ -230,24 +282,32 @@
   };
   const nameMatch = (alts, it) => { const keys = it.ar.concat(it.en).map(nm); return alts.some((a) => { const p = " " + nm(a) + " "; return keys.some((k) => p.includes(" " + k + " ") || (k.length >= 3 && p.includes(k))); }); };
   async function game4(c) {
-    const age = A(c.age), cat = {}; let items = [];
+    const age = A(c.age); let items = [];
     G4[age].forEach(([k, n]) => pickFresh("nm-" + k, BANK[k], n, (x) => x.e).forEach((it) => items.push({ it, cat: k })));
-    const N = items.length, pl = langPlan(N), trials = []; let unavailable = false;
-    if (!SR) { try { const st = await navigator.mediaDevices.getUserMedia({ audio: true }); st.getTracks().forEach((k) => k.stop()); } catch (e) { unavailable = true; } }
+    const N = items.length, pl = langPlan(N), trials = []; let unavailable = false, fails = 0;
+    if (!SR) { try { const st = await navigator.mediaDevices.getUserMedia({ audio: true }); st.getTracks().forEach((k) => k.stop()); } catch (e) { await micHelp(c, "denied"); unavailable = true; } }
     for (let t = 0; t < N && !unavailable; t++) {
-      c.prog(t, N); c.check(); const { it, cat: ct } = items[t];
-      c.body.innerHTML = `<div class="ran"><div class="ritem" id="ri"></div></div>`; await wait(450); c.check();
-      let shown = false, res;
-      if (SR) {
-        res = await listen(pl[t], 5000, () => { $("#ri").textContent = it.e; shown = true; }); c.check();
-        if (res.none || !shown) { if (!micOK || res.none) { unavailable = true; break; } trials.push({ t, cat: ct, item: it.en[0], rt: null, correct: null, omitted: true }); continue; }
-      } else { $("#ri").textContent = it.e; res = await vadOnce(5000); c.check(); }
-      const ok = res.alts && res.alts.length ? nameMatch(res.alts, it) : null;
-      trials.push({ t, cat: ct, item: it.en[0], heard: (res.alts && res.alts[0]) || "", rt: res.latency, correct: ok, omitted: res.latency == null && !(res.alts && res.alts.length) });
-      $("#ri").classList.add("done"); await wait(350);
+      c.prog(t, N); c.check(); const { it, cat: ct } = items[t]; let res = null;
+      for (let a = 0; a < 2; a++) {
+        c.body.innerHTML = `<div class="ran"><div class="ritem" id="ri"></div></div>`; await wait(500); c.check();
+        if (SR) {
+          res = await listen(pl[t], 6000, () => { const r = $("#ri"); if (r) r.textContent = it.e; }, 900); c.check();
+          if (res.none && !micOK) { const m = await micHelp(c, res.err || "denied"); if (m === "skip") { unavailable = true; break; } micOK = true; a--; continue; }
+        } else { $("#ri").textContent = it.e; res = await vadOnce(5000); c.check(); }
+        if ((res.alts && res.alts.length) || res.latency != null) break;
+      }
+      if (unavailable) break;
+      if (!(res && ((res.alts && res.alts.length) || res.latency != null))) {
+        trials.push({ t, cat: ct, item: it.en[0], rt: null, correct: null, omitted: true, err: res && res.err });
+        if (++fails >= 2) { const m = await micHelp(c, (res && res.err) || "silent"); if (m === "skip") { unavailable = true; break; } micOK = true; fails = 0; }
+        continue;
+      }
+      fails = 0; const ok = res.alts && res.alts.length ? nameMatch(res.alts, it) : null;
+      trials.push({ t, cat: ct, item: it.en[0], heard: (res.alts && res.alts[0]) || "", rt: res.latency, correct: ok, omitted: false });
+      const box = c.body.querySelector ? c.body.querySelector(".ran") : null; if ($("#ri")) $("#ri").classList.add("done"); if (box) box.insertAdjacentHTML("beforeend", `<small class="heard" dir="auto">${esc((res.alts && res.alts[0]) || "")}</small>`);
+      await wait(600);
     }
     c.prog(N, N);
-    if (unavailable) { c.body.innerHTML = `<div class="gm-intro"><div class="big">🔇</div><p>${T("nospeech")}</p></div>`; await wait(2500); }
     const rts = trials.filter((x) => x.rt != null).map((x) => x.rt), m = med(rts), mean = rts.length ? rts.reduce((a, b) => a + b, 0) / rts.length : null, s = sd(rts), sc = trials.filter((x) => x.correct !== null);
     const byCat = {}; ["color", "obj1", "obj2", "digit"].forEach((k) => { const v = trials.filter((x) => x.cat === k && x.rt != null).map((x) => x.rt); if (v.length) byCat[k] = rnd(med(v)); });
     return { trials, metrics: { n: N, scored: sc.length, errors: sc.filter((x) => !x.correct).length, omissions: trials.filter((x) => x.omitted).length, slow: rts.filter((v) => v > 3000).length,
@@ -362,9 +422,15 @@
     $("#gmTitle").textContent = T(g.t); $("#gmCount").textContent = fmt(T("count"), { i: i + 1, n: plan }); $("#gmProg").innerHTML = "";
     const chips = g.lang ? `<div class="lcs"><small class="sub">${T("lc")}</small><div class="chips">${[["ar","lar"],["en","len"],["mix","lmix"]].map(([k, n]) => `<button type="button" class="chip" data-cl="${k}" aria-pressed="${CL === k}">${T(n)}</button>`).join("")}</div></div>` : "";
     const ex = g.ex ? `<div class="exs"><span>${L() === "en" ? "🐱" : "🐱"}<br>${T("exw")[0]}</span><span>${L() === "en" ? "🔑" : "🌙"}<br>${T("exw")[1]}</span></div><p class="micnote">${T("ex6")}</p>` : "";
-    body.innerHTML = `<div class="gm-intro"><div class="big">${g.icon}</div><h2>${T(g.t)}</h2><p>${T(g.i)}</p>${ex}${g.note ? `<p class="micnote">${T(g.note)}</p>` : ""}${chips}
+    const tests = g.note ? `<div class="lcs"><div class="chips"><button type="button" class="chip" id="gmMic">🎤 ${T("mictest")}</button><button type="button" class="chip" id="gmVoice">🔊 ${T("voicetest")}</button></div><small class="sub" id="gmTestOut"></small></div>` : "";
+    body.innerHTML = `<div class="gm-intro"><div class="big">${g.icon}</div><h2>${T(g.t)}</h2><p>${T(g.i)}</p>${ex}${g.note ? `<p class="micnote">${T(g.note)}</p>` : ""}${chips}${tests}
       <button class="pill" id="gmGo" type="button"><span>${T("start")}</span><b>▶</b></button></div>`;
     body.querySelectorAll("[data-cl]").forEach((b) => (b.onclick = () => { CL = b.dataset.cl; body.querySelectorAll("[data-cl]").forEach((x) => x.setAttribute("aria-pressed", x === b)); }));
+    if ($("#gmMic")) {
+      const out = $("#gmTestOut"), tl = () => (CL === "en" ? "en" : "ar");
+      $("#gmMic").onclick = async () => { micOK = true; out.textContent = T("micsay"); const r = await listen(tl(), 7000, () => (out.textContent = T("micgo")), 1200); out.textContent = r.alts.length ? T("micheard") + " " + r.alts[0] : errMsg(r.err || "silent"); };
+      $("#gmVoice").onclick = async () => { out.textContent = "…"; const w = tl() === "en" ? "hello" : "مرحبا", r = await speak(w, tl()); out.textContent = r.ok ? T("voiceok") : T("voicebad"); };
+    }
     speak(T(g.i), L() === "en" ? "en" : "ar");
     await new Promise((r) => ($("#gmGo").onclick = r)); check(my); if (window.speechSynthesis) speechSynthesis.cancel();
     const ctx = { body, age, check: () => check(my), prog: (k, n) => { $("#gmProg").innerHTML = Array.from({ length: n }, (_, j) => `<i class="${j < k ? "on" : ""}"></i>`).join(""); } };
@@ -391,5 +457,5 @@
   };
   if ($("#gmClose")) $("#gmClose").onclick = close;
   addEventListener("keydown", (e) => { if (e.key === "Escape" && $("#game") && !$("#game").hidden) close(); });
-  window.TiflanGamesTest = { pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
+  window.TiflanGamesTest = { speak, listen, listen, speak, game3, game4, pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
 })();

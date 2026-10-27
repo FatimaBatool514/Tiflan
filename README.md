@@ -28,3 +28,4 @@ Open index.html in a browser, or enable GitHub Pages (Settings > Pages > Deploy 
 All text is in js/i18n.js. The brand name is in index.html (class brand-en / brand-ar).
 
 - Fixes: fresh items every play, age tiers, Arabic/English word language choice, automatic speech checking in Games 3 and 4, new Game 6 (Sound Detective), results now open after the games, print report fixed.
+- Voice fix: recognition restarts itself when the browser ends a session early, falls back to other Arabic dialect codes, and a "great" is shown only when speech was actually heard.
