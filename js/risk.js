@@ -111,7 +111,7 @@
       <div class="foot"><button class="ghost" id="rsAgain" type="button">${lab.again}</button><button class="pill" id="rsGo" type="button"><span>${lab.go}</span><b>↗</b></button></div>`;
     const say = $("#rsSay"); if (say) say.onclick = () => window.TiflanSpeak && window.TiflanSpeak(spoken(R));
     $("#rsAgain").onclick = () => { close(); window.openGames && window.openGames(); };
-    $("#rsGo").onclick = () => { close(); window.tiflanToast("step9"); };
+    $("#rsGo").onclick = () => { close(); window.openSupport ? window.openSupport("plan") : window.tiflanToast("step9"); };
   }
   function close() { $("#results").hidden = true; document.body.style.overflow = ""; if (window.speechSynthesis) speechSynthesis.cancel(); }
   window.openResults = () => {
@@ -124,5 +124,5 @@
   $("#rsClose").onclick = close;
   addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#results").hidden) close(); });
   document.addEventListener("tiflan:lang", () => { if (!$("#results").hidden) render(); });
-  window.Tiflan.score = score;
+  window.Tiflan.score = score; Object.assign(window.Tiflan, { SK, SL, OV, MSG });
 })();

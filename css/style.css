@@ -233,3 +233,26 @@ html[dir=rtl] .mk{translate:50% 0}
 .why{padding:12px 16px;border-radius:16px;background:rgba(255,255,255,.05)}.why summary{cursor:pointer;font-weight:600;min-height:32px}
 .why h4{margin:12px 0 6px;color:var(--gold);font-size:.9rem}.why ul{padding-inline-start:18px;font-size:.85rem;line-height:1.7}.why .mono{font-family:ui-monospace,monospace;font-size:.76rem;direction:ltr;text-align:left}
 @media(max-width:560px){.ov{flex-direction:column;text-align:center}}
+
+/* ===== Step 9: support ===== */
+.tabs{display:flex;gap:8px;padding-inline-end:52px;flex-wrap:wrap}
+.tab{min-height:48px;padding:0 20px;border-radius:99px;border:2px solid var(--line);font-weight:600}.tab[aria-selected=true]{background:var(--gold);color:var(--indigo);border-color:var(--gold)}
+#spBody{display:flex;flex-direction:column;gap:12px}
+.pbar{height:12px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden}.pbar i{display:block;height:100%;background:var(--mint);transition:width .3s}
+.day{padding:14px;border-radius:20px;background:rgba(255,255,255,.07);display:flex;flex-direction:column;gap:8px}.day h4{color:var(--gold)}
+.task{display:flex;gap:12px;align-items:flex-start;line-height:1.7;font-size:.94rem;cursor:pointer;min-height:48px}.task input{width:26px;height:26px;accent-color:var(--mint);flex:none;margin-top:3px}.task small{color:var(--aqua)}
+.note2.soft{background:rgba(91,192,235,.12)}
+.frow{display:flex;gap:10px;flex-wrap:wrap}.frow select{flex:1;min-height:48px;border-radius:14px;border:2px solid var(--line);background:rgba(255,255,255,.08);color:var(--cloud);padding:0 12px;font:inherit}.frow select option{color:#222}
+#map{height:260px;border-radius:20px;overflow:hidden;z-index:0}
+.ctr{padding:14px;border-radius:18px;background:rgba(255,255,255,.07);cursor:pointer;display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}.tags span{font-size:.75rem;padding:3px 10px;border-radius:99px;background:rgba(91,192,235,.2)}
+.tel{color:var(--gold);margin-inline-start:10px}
+#printArea{display:none}
+@media print{
+  body.printing>*:not(#printArea){display:none!important}
+  body.printing{background:#fff!important;padding:0!important}
+  body.printing #printArea{display:block;color:#111;font-family:var(--body);padding:18mm;font-size:11pt;line-height:1.6}
+  #printArea h1{font-size:20pt}#printArea h2{font-size:14pt;color:#444}#printArea h3{margin-top:14pt;font-size:12pt;border-bottom:1px solid #999}
+  #printArea table{width:100%;border-collapse:collapse;margin-top:6pt}#printArea td,#printArea th{border:1px solid #bbb;padding:4pt 6pt;text-align:start;vertical-align:top;font-size:10pt}
+  #printArea .raw{font-size:8pt;direction:ltr;text-align:left}#printArea .disc{margin-top:14pt;padding:8pt;border:1px solid #999;font-size:9pt}
+}

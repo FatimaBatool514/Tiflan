@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Readex+Pro:wght@300;400;600&family=Reem+Kufi:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -169,6 +170,14 @@
     <div id="rsBody"></div>
   </div>
 </div>
+<div class="sheet" id="support" hidden role="dialog" aria-modal="true">
+  <div class="sheet-card wide res-card">
+    <button class="x" id="spClose" type="button" aria-label="Close">✕</button>
+    <div class="tabs" id="spTabs"></div>
+    <div id="spBody"></div>
+  </div>
+</div>
+<div id="printArea"></div>
 <div class="toast" id="toast" role="status"></div>
   <span id="privacy"></span>
 </main>
@@ -179,6 +188,9 @@
 <script src="js/intake.js"></script>
 <script src="js/games.js"></script>
 <script src="js/risk.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="data/centers.js"></script>
+<script src="js/support.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
