@@ -67,27 +67,27 @@
     const t = setTimeout(() => res(speechSynthesis.getVoices()), 1200);
     speechSynthesis.addEventListener("voiceschanged", () => { clearTimeout(t); res(speechSynthesis.getVoices()); }, { once: true });
   });
-  // Speaks one utterance; resolves {ok:true} only if the device really started speaking.
+  // Plain, tolerant speaking (the version that worked on real phones): never cancels a voice that is still loading.
+  // ok=false only when the browser reports a real error.
   const say = (text, code, voice) => new Promise((res) => {
-    const ss = window.speechSynthesis; let started = false, done = false, tm = null, st = null; const t0 = performance.now();
-    const fin = (ok) => { if (!done) { done = true; clearTimeout(tm); clearTimeout(st); res({ ok }); } };
-    const u = new SpeechSynthesisUtterance(text); u.lang = code; u.rate = 0.85; if (voice) u.voice = voice;
-    u.onstart = () => { started = true; };
-    u.onend = () => fin(started && performance.now() - t0 > 150);
+    const ss = window.speechSynthesis; let done = false, tm = null;
+    const fin = (ok) => { if (!done) { done = true; clearTimeout(tm); res({ ok }); } };
+    const u = new SpeechSynthesisUtterance(text); u.lang = code; u.rate = 0.9; if (voice) u.voice = voice;
+    u.onend = () => fin(true);
     u.onerror = (e) => { if (e.error === "interrupted" || e.error === "canceled") return; fin(false); };
-    st = setTimeout(() => { if (!started) { try { ss.cancel(); } catch (e) {} fin(false); } }, 2500);   // browser accepted it but stayed silent
-    tm = setTimeout(() => fin(started), 7000);
+    tm = setTimeout(() => fin(true), 12000);
     ss.speak(u);
   });
-  // Order: voice for the language -> (if none) an English voice reading a phonetic spelling (alt) -> ok:false so the screen shows the written word.
+  // Uses the Arabic (or English) voice installed on the phone. Only if the phone has NO voice for the language does it fall back to
+  // an English voice reading a phonetic spelling (alt), and finally to showing the written word (ok:false).
   async function speak(text, lang, alt) {
     const ss = window.speechSynthesis; if (!ss) { await wait(800); return { ok: false, voice: false }; }
     const vs = await voicesReady(), l = sttFor(lang);
     const pick = (code) => vs.find((v) => v.lang.replace("_", "-") === code) || vs.find((v) => v.lang.slice(0, 2) === code.slice(0, 2)) || null;
-    if (ss.speaking || ss.pending) { ss.cancel(); await wait(180); } if (ss.paused) ss.resume();
+    if (ss.speaking || ss.pending) { ss.cancel(); await wait(150); } if (ss.paused) ss.resume();
     const v1 = pick(l);
-    if (v1 || !vs.length) { const r = await say(text, l, v1); if (r.ok) return { ok: true, voice: !!v1 }; if (v1) { ss.cancel(); await wait(150); } }
-    if (alt) { const r = await say(alt, "en-US", pick("en-US")); if (r.ok) return { ok: true, voice: false, alt: true }; }
+    if (v1 || !vs.length) { const r = await say(text, l, v1); if (r.ok) return { ok: true, voice: !!v1 }; }
+    if (!v1 && alt) { const r = await say(alt, "en-US", pick("en-US")); if (r.ok) return { ok: true, voice: false, alt: true }; }
     return { ok: false, voice: !!v1 };
   }
   window.TiflanSpeak = (t) => speak(t, L() === "en" ? "en" : "ar");
