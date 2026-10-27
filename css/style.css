@@ -256,3 +256,12 @@ html[dir=rtl] .mk{translate:50% 0}
   #printArea table{width:100%;border-collapse:collapse;margin-top:6pt}#printArea td,#printArea th{border:1px solid #bbb;padding:4pt 6pt;text-align:start;vertical-align:top;font-size:10pt}
   #printArea .raw{font-size:8pt;direction:ltr;text-align:left}#printArea .disc{margin-top:14pt;padding:8pt;border:1px solid #999;font-size:9pt}
 }
+
+/* ===== Step 10: demo, agents, privacy ===== */
+.mini{display:flex;flex-wrap:wrap;gap:2px 14px}.mini .ghost{font-size:.85rem}
+.stack{display:flex;flex-direction:column;gap:12px}.stack h2{font-family:var(--display);font-size:1.7rem}.stack h3{font-family:var(--display);font-size:1.2rem;margin-top:6px}
+.pipe{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:1.4rem}.pipe span{padding:8px 14px;border-radius:16px;background:rgba(255,255,255,.1)}.pipe em{font-style:normal;color:var(--gold)}
+.logbox{list-style:none;padding:12px;margin:0;border-radius:16px;background:rgba(0,0,0,.28);font-family:ui-monospace,monospace;font-size:.76rem;line-height:1.8;max-height:200px;overflow:auto;direction:ltr;text-align:left}
+.logbox b{color:var(--mint)}
+#demoBar{position:fixed;inset-block-start:10px;inset-inline:0;margin:auto;width:fit-content;max-width:94vw;z-index:50;display:flex;gap:12px;align-items:center;padding:8px 8px 8px 18px;border-radius:99px;background:var(--gold);color:var(--indigo);font-weight:600;font-size:.85rem;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+#demoBar button{min-height:36px;padding:0 16px;border-radius:99px;background:var(--indigo);color:var(--gold)}

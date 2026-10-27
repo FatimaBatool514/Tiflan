@@ -7,14 +7,18 @@
   const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
   const fresh = () => ({ sid: uid(), createdAt: Date.now(), consent: { play: false, mic: false, camera: false },
     child: { age: null, gender: null, dialect: "gulf", homeLang: null } });
+  let demo = false;
   const store = {
     get() { try { const p = JSON.parse(localStorage.getItem(KEY)); if (p && Date.now() - p.createdAt < DAYS * 864e5) return p; localStorage.removeItem(KEY); } catch (e) {} return null; },
-    set(p) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) {} },
+    set(p) { if (demo) return; try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) {} },
     clear() { try { localStorage.removeItem(KEY); } catch (e) {} }
   };
   let saved = store.get(), draft = saved || fresh();
   window.Tiflan = { profile: () => saved, plan: () => (saved && saved.child.age <= 5 ? 4 : 6),
-    update: (fn) => { if (saved) { fn(saved); store.set(saved); } } };
+    update: (fn) => { if (saved) { fn(saved); store.set(saved); } },
+    loadDemo: (p) => { demo = true; saved = p; draft = p; }, isDemo: () => demo,
+    wipe: () => { store.clear(); saved = null; draft = fresh(); },
+    log: (a, m) => { (window.Tiflan._log = window.Tiflan._log || []).push({ t: Date.now(), agent: a, msg: m }); } };
 
   const valid = () => step === 0 ? draft.consent.play && draft.consent.mic
     : step === 1 ? !!draft.child.age : step === 2 ? !!draft.child.homeLang : true;
@@ -41,7 +45,7 @@
     $("#cPlay").checked = draft.consent.play; $("#cMic").checked = draft.consent.mic; $("#cCam").checked = draft.consent.camera;
     if (step === 3) summary();
   }
-  const open = () => { saved = store.get(); if (saved) draft = saved; step = saved ? 3 : 0; sheet.hidden = false; document.body.style.overflow = "hidden"; render(); $("#next").focus(); };
+  const open = () => { saved = demo ? saved : store.get(); if (saved) draft = saved; step = saved ? 3 : 0; sheet.hidden = false; document.body.style.overflow = "hidden"; render(); $("#next").focus(); };
   const close = () => { sheet.hidden = true; document.body.style.overflow = ""; };
   window.openOnboarding = open;
 
@@ -55,7 +59,7 @@
   $("#back").onclick = () => { step = Math.max(0, step - 1); render(); };
   $("#next").onclick = () => {
     if (!valid()) return;
-    if (step === 2) { draft.consent.ts = Date.now(); saved = draft; store.set(saved); }
+    if (step === 2) { draft.consent.ts = Date.now(); saved = draft; store.set(saved); window.Tiflan.log("Guardian Agent", "consent recorded; data kept on device only"); }
     if (step === 3) { close(); document.dispatchEvent(new CustomEvent("tiflan:profile", { detail: saved })); (window.openIntake ? window.openIntake() : window.tiflanToast("step4")); return; }
     step++; render();
   };

@@ -12,6 +12,7 @@ Early learning screening for children aged 4–8 (Arabic + English). Static site
 - Step 7: Game 5 Letter Twins (match + tracing), Game 6 Clap the Syllables (in js/games.js)
 - Step 8: Risk Scoring Agent + results dashboard (js/risk.js). Thresholds are PROTOTYPE values, need specialist review.
 - Step 9: exercise plan, center finder, printable PDF report (js/support.js, data/centers.js). Replace the EXAMPLE centers with the official DHA list.
+- Step 10: demo mode (?demo=1), behind-the-scenes view, privacy centre, installable PWA (sw.js, manifest), DEMO-SCRIPT.md
 
 ## Optional: turn on cloud AI (free)
 1. Get a Gemini key at aistudio.google.com.

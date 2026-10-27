@@ -367,7 +367,7 @@
   }
   function close() { tok++; $("#game").hidden = true; document.body.style.overflow = ""; if (window.speechSynthesis) speechSynthesis.cancel(); }
   window.openGames = () => {
-    const my = ++tok; $("#game").hidden = false; document.body.style.overflow = "hidden";
+    const my = ++tok; window.Tiflan.log("Orchestrator", "planned " + window.Tiflan.plan() + " games"); $("#game").hidden = false; document.body.style.overflow = "hidden";
     play(0, [], my).catch((e) => { if (e.message !== "cancel") console.error(e); });
   };
   $("#gmClose").onclick = close;

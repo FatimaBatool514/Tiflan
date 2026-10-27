@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tiflan | طفلان</title>
 <meta name="theme-color" content="#2B1B5E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="description" content="Tiflan | طفلان – early learning screening for children aged 4–8, in Arabic and English.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,6 +18,7 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<noscript><p style="padding:24px;color:#fff">Tiflan needs JavaScript. | طفلان يحتاج تفعيل جافاسكربت.</p></noscript>
 <main class="stage" id="stage">
 
   <header class="nav">
@@ -22,8 +28,8 @@
     </a>
     <nav class="links">
       <a href="#" class="on" data-i18n="nav1"></a>
-      <a href="#games" data-i18n="nav2"></a>
-      <a href="#privacy" data-i18n="nav3"></a>
+      <a href="#" data-open="agents" data-i18n="nav2"></a>
+      <a href="#" data-open="privacy" data-i18n="nav3"></a>
     </nav>
     <div class="nav-end">
       <button class="lang" id="langBtn" type="button" aria-label="Switch language"></button>
@@ -40,6 +46,7 @@
     <button class="pill" type="button" data-start><span data-i18n="cta2"></span><b>↗</b></button>
     <button class="ghost" type="button" id="wanderBtn">↻ <span data-i18n="wander"></span></button>
     <small class="note" data-i18n="note"></small>
+    <div class="mini"><button class="ghost" type="button" data-open="demo">▶ <span data-i18n="m_demo"></span></button><button class="ghost" type="button" data-open="agents">🧩 <span data-i18n="m_agents"></span></button><button class="ghost" type="button" data-open="privacy">🛡️ <span data-i18n="m_priv"></span></button></div>
   </section>
 
   <section class="falcon-wrap" aria-label="Falcon mascot">
@@ -178,8 +185,10 @@
   </div>
 </div>
 <div id="printArea"></div>
+<div class="sheet" id="agentsSheet" hidden role="dialog" aria-modal="true"><div class="sheet-card wide res-card"><button class="x" id="agClose" type="button" aria-label="Close">✕</button><div id="agBody" class="stack"></div></div></div>
+<div class="sheet" id="privSheet" hidden role="dialog" aria-modal="true"><div class="sheet-card wide res-card"><button class="x" id="prClose" type="button" aria-label="Close">✕</button><div id="prBody" class="stack"></div></div></div>
 <div class="toast" id="toast" role="status"></div>
-  <span id="privacy"></span>
+  
 </main>
 <script src="js/i18n.js"></script>
 <script src="js/i18n-onboard.js"></script>
@@ -191,6 +200,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="data/centers.js"></script>
 <script src="js/support.js"></script>
+<script src="js/polish.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

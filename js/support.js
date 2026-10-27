@@ -46,7 +46,7 @@
   }
   function renderPlan() {
     const p = prof(), l = LG(); if (!p.results) return ($("#spBody").innerHTML = "");
-    if (!p.plan || p.plan.ts < p.results.ts) window.Tiflan.update((q) => { q.plan = makePlan(q.results); });
+    if (!p.plan || p.plan.ts < p.results.ts) window.Tiflan.update((q) => { q.plan = makePlan(q.results); window.Tiflan.log("Support Agent", "5-day plan generated"); });
     const P = prof().plan, total = 10, done = Object.values(P.done).filter(Boolean).length;
     const row = (key, e, extra) => `<label class="task"><input type="checkbox" data-k="${key}" ${P.done[key] ? "checked" : ""}><span><b>${e.t[l]}</b> <small>${e.m} ${T("min")}${extra || ""}</small><br>${e.d[l]}</span></label>`;
     $("#spBody").innerHTML = `<p class="sub">${P.maint ? T("maint") : T("focus") + ": " + P.focus.map((id) => SK()[id][l]).join(" · ")}</p>
@@ -115,7 +115,7 @@
       <h3>${H.raw}</h3><ul class="raw">${raw}</ul><p class="disc">${H.disc}</p></div>`;
   }
   function printReport(lang) {
-    $("#printArea").innerHTML = report(lang); document.body.classList.add("printing");
+    window.Tiflan.log("Support Agent", "doctor report created (" + lang + ")"); $("#printArea").innerHTML = report(lang); document.body.classList.add("printing");
     const off = () => { document.body.classList.remove("printing"); removeEventListener("afterprint", off); }; addEventListener("afterprint", off);
     setTimeout(() => window.print(), 100);
   }
