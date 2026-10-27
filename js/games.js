@@ -25,12 +25,12 @@
       s1:"{c} of {n} correct · typical response {m}s · early taps {p}", s2:"{c} of {n} correct · typical response {m}s · replays {r}",
       s3:"{c} of {s} words correct (automatic check)", s4:"typical naming time {m}s · mistakes detected {e} of {s}", s5:"{c} of {n} letters correct · response {m}s · rough tracing accuracy {q}%", s6:"{c} of {n} first sounds correct · response {m}s" }
   };
-  Object.assign(S.ar, { retry:"حاولي مرة ثانية", skipg:"تخطي اللعبة", skipitem:"ولا يهمك، ننتقل للتالي!", novoice:"ما عندنا صوت لهذه اللغة على الجهاز، الكلمة مكتوبة هنا.",
+  Object.assign(S.ar, { tapmic:"اضغط الميكروفون وقل الكلمة", retry:"حاولي مرة ثانية", skipg:"تخطي اللعبة", skipitem:"ولا يهمك، ننتقل للتالي!", novoice:"ما عندنا صوت لهذه اللغة على الجهاز، الكلمة مكتوبة هنا.",
     mictest:"اختبار الميكروفون", micsay:"قولي أي كلمة...", micgo:"تكلمي الحين 🎤", micheard:"سمعنا:", voicetest:"اختبار الصوت", voiceok:"✓ سمعتِ الكلمة؟ الصوت يعمل.", voicebad:"لا يوجد صوت لهذه اللغة على هذا الجهاز، ستظهر الكلمات مكتوبة.",
     e_denied:"الميكروفون غير مسموح. فعّليه من إعدادات المتصفح (رمز القفل بجانب العنوان) ثم حاولي مرة ثانية.", e_net:"التعرف على الكلام يحتاج اتصالاً بالإنترنت. تأكدي من الاتصال ثم حاولي.",
     e_cap:"الميكروفون مشغول أو غير متوفر. أغلقي التطبيقات الأخرى التي تستخدمه.", e_unsup:"هذا المتصفح لا يدعم التعرف على الكلام. استخدمي Chrome على أندرويد أو على الكمبيوتر.",
     e_lang:"هذه اللغة غير مدعومة للتعرف على الكلام في هذا الجهاز.", e_silent:"ما وصلنا صوت. تأكدي أن الميكروفون يعمل، وأن الغرفة هادئة، وخلي الطفل يتكلم بصوت أعلى وقريب من الجهاز." });
-  Object.assign(S.en, { retry:"Try again", skipg:"Skip this game", skipitem:"No worries, let's go to the next one!", novoice:"This device has no voice for this language, so the word is shown here.",
+  Object.assign(S.en, { tapmic:"Tap the microphone and say the word", retry:"Try again", skipg:"Skip this game", skipitem:"No worries, let's go to the next one!", novoice:"This device has no voice for this language, so the word is shown here.",
     mictest:"Test microphone", micsay:"Say anything...", micgo:"Speak now 🎤", micheard:"Heard:", voicetest:"Test voice", voiceok:"✓ Did you hear the word? The voice works.", voicebad:"No voice for this language on this device. Words will be shown in writing.",
     e_denied:"Microphone access is blocked. Allow it in the browser settings (lock icon next to the address), then try again.", e_net:"Speech recognition needs an internet connection. Please check it and try again.",
     e_cap:"The microphone is busy or missing. Close other apps that use it.", e_unsup:"This browser does not support speech recognition. Please use Chrome on Android or desktop.",
@@ -67,21 +67,28 @@
     const t = setTimeout(() => res(speechSynthesis.getVoices()), 1200);
     speechSynthesis.addEventListener("voiceschanged", () => { clearTimeout(t); res(speechSynthesis.getVoices()); }, { once: true });
   });
-  // Resolves {ok, voice}. ok=false means the word was probably NOT heard (no voice for the language, or it ended instantly).
-  async function speak(text, lang) {
-    if (!window.speechSynthesis) { await wait(1200); return { ok: false, voice: false }; }
+  // Speaks one utterance; resolves {ok:true} only if the device really started speaking.
+  const say = (text, code, voice) => new Promise((res) => {
+    const ss = window.speechSynthesis; let started = false, done = false, tm = null, st = null; const t0 = performance.now();
+    const fin = (ok) => { if (!done) { done = true; clearTimeout(tm); clearTimeout(st); res({ ok }); } };
+    const u = new SpeechSynthesisUtterance(text); u.lang = code; u.rate = 0.85; if (voice) u.voice = voice;
+    u.onstart = () => { started = true; };
+    u.onend = () => fin(started && performance.now() - t0 > 150);
+    u.onerror = (e) => { if (e.error === "interrupted" || e.error === "canceled") return; fin(false); };
+    st = setTimeout(() => { if (!started) { try { ss.cancel(); } catch (e) {} fin(false); } }, 2500);   // browser accepted it but stayed silent
+    tm = setTimeout(() => fin(started), 7000);
+    ss.speak(u);
+  });
+  // Order: voice for the language -> (if none) an English voice reading a phonetic spelling (alt) -> ok:false so the screen shows the written word.
+  async function speak(text, lang, alt) {
+    const ss = window.speechSynthesis; if (!ss) { await wait(800); return { ok: false, voice: false }; }
     const vs = await voicesReady(), l = sttFor(lang);
-    const voice = vs.find((v) => v.lang.replace("_", "-") === l) || vs.find((v) => v.lang.slice(0, 2) === l.slice(0, 2)) || null;
-    if (speechSynthesis.speaking || speechSynthesis.pending) { speechSynthesis.cancel(); await wait(150); }
-    if (speechSynthesis.paused) speechSynthesis.resume();
-    return new Promise((res) => {
-      const u = new SpeechSynthesisUtterance(text); u.lang = l; u.rate = 0.9; if (voice) u.voice = voice;
-      const t0 = performance.now(); let done = false, tm = null;
-      const fin = (ok) => { if (!done) { done = true; clearTimeout(tm); res({ ok, voice: !!voice }); } };
-      u.onend = () => fin(!!voice && performance.now() - t0 > 250);
-      u.onerror = (e) => { if (e.error === "interrupted" || e.error === "canceled") return; fin(false); };
-      tm = setTimeout(() => fin(false), 6000); speechSynthesis.speak(u);
-    });
+    const pick = (code) => vs.find((v) => v.lang.replace("_", "-") === code) || vs.find((v) => v.lang.slice(0, 2) === code.slice(0, 2)) || null;
+    if (ss.speaking || ss.pending) { ss.cancel(); await wait(180); } if (ss.paused) ss.resume();
+    const v1 = pick(l);
+    if (v1 || !vs.length) { const r = await say(text, l, v1); if (r.ok) return { ok: true, voice: !!v1 }; if (v1) { ss.cancel(); await wait(150); } }
+    if (alt) { const r = await say(alt, "en-US", pick("en-US")); if (r.ok) return { ok: true, voice: false, alt: true }; }
+    return { ok: false, voice: !!v1 };
   }
   window.TiflanSpeak = (t) => speak(t, L() === "en" ? "en" : "ar");
   const check = (my) => { if (my !== tok) throw new Error("cancel"); };
@@ -152,6 +159,10 @@
     }
     return w;
   }
+
+  const TL = { "ب":"b","ت":"t","د":"d","ك":"k","م":"m","ن":"n","ف":"f","س":"s","ل":"l","ر":"r","ز":"z","ج":"j","ح":"h","ش":"sh","خ":"kh","غ":"gh","ط":"t","ص":"s","ق":"k","ع":"a","ث":"th" };
+  const translit = (w) => { const ch = [...w], LV = { "\u064E":["ا","ah"], "\u0650":["ي","ee"], "\u064F":["و","oo"] }, SV = { "\u064E":"a", "\u0650":"i", "\u064F":"u" }; let o = "";
+    for (let i = 0; i < ch.length; i++) { const c = ch[i]; if (TL[c]) o += TL[c]; else if (LV[c]) { if (ch[i + 1] === LV[c][0]) { o += LV[c][1]; i++; } else o += SV[c]; } } return o; };
 
   /* ---------- age tiers ---------- */
   const A = (age) => Math.max(4, Math.min(8, age || 6));
@@ -236,17 +247,19 @@
   /* ---------- Game 3: Silly Word Echo (checked automatically) ---------- */
   async function game3(c) {
     const age = A(c.age), lens = LENS[age], tier = age <= 5 ? 1 : 2, pl = langPlan(lens.length), used = new Set(), trials = [];
-    const items = lens.map((s, i) => { let w; do { w = genWord(pl[i], s, tier); } while (used.has(w)); used.add(w); return { w, s, l: pl[i] }; }); const N = items.length; let unavailable = !SR, fails = 0;
-    if (!SR) { await micHelp(c, "unsupported"); }
+    const items = lens.map((n, i) => { let w; do { w = genWord(pl[i], n, tier); } while (used.has(w)); used.add(w); return { w, s: n, l: pl[i], alt: pl[i] === "ar" ? translit(w) : null }; });
+    const N = items.length; let unavailable = !SR, fails = 0, viaAlt = 0, silent = 0;
+    if (!SR) await micHelp(c, "unsupported");
     for (let t = 0; t < N && !unavailable; t++) {
-      c.prog(t, N); c.check(); const { w, s, l } = items[t]; let tries = 0, res = null;
+      c.prog(t, N); c.check(); const { w, s, l, alt } = items[t]; let tries = 0, res = null;
+      c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("listen")}</h2></div>`;
+      let sp = await speak(w, l, alt); c.check(); if (sp.alt) viaAlt++; if (!sp.ok) silent++;
       for (;;) {
-        c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("listen")}</h2></div>`;
-        const sp = await speak(w, l); c.check();
-        if (!sp.ok) { c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("listen")}</h2><div class="wbig" dir="auto">${esc(w)}</div><p class="micnote">${T("novoice")}</p></div>`; await wait(2600); }
-        else await wait(450);
-        c.check();
-        res = await listen(l, 7500, () => { c.body.innerHTML = `<div class="echo"><div class="big mic">🎤</div><h2>${T("nowyou")}</h2></div>`; }); c.check();
+        c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("tapmic")}</h2>${sp.ok ? "" : `<div class="wbig" dir="auto">${esc(w)}</div><p class="micnote">${T("novoice")}</p>`}<div class="mrow"><button class="chip" id="hw" type="button">🔊 ${T("replay")}</button><button class="clapbtn" id="mk" type="button">🎤</button></div></div>`;
+        const act = await new Promise((r) => { $("#hw").onclick = () => r("hear"); $("#mk").onclick = () => r("say"); }); c.check();
+        if (act === "hear") { sp = await speak(w, l, alt); c.check(); if (sp.alt) viaAlt++; continue; }
+        c.body.innerHTML = `<div class="echo"><div class="big mic">🎤</div><h2>${T("nowyou")}</h2></div>`;
+        res = await listen(l, 7500, null); c.check();
         if (res.none && !micOK) { const m = await micHelp(c, res.err || "denied"); if (m === "skip") { unavailable = true; break; } micOK = true; continue; }
         if (res.alts.length) break;
         if (++tries < 2) { c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("again")}</h2></div>`; await wait(1200); continue; }
@@ -266,7 +279,7 @@
     c.prog(N, N);
     const sc = trials.filter((x) => x.correct !== null), byLen = {}; sc.forEach((x) => { const b = (byLen[x.syl] = byLen[x.syl] || { c: 0, n: 0 }); b.n++; if (x.correct) b.c++; });
     return { trials, metrics: { n: N, scored: sc.length, correct: sc.filter((x) => x.correct).length, omissions: trials.filter((x) => x.omitted).length,
-      medianLatency: rnd(med(trials.filter((x) => x.latency != null).map((x) => x.latency))), byLen, unavailable } };
+      medianLatency: rnd(med(trials.filter((x) => x.latency != null).map((x) => x.latency))), byLen, unavailable, viaAlt, silent } };
   }
 
   /* ---------- Game 4: Quick Naming Race (checked automatically) ---------- */
@@ -457,5 +470,5 @@
   };
   if ($("#gmClose")) $("#gmClose").onclick = close;
   addEventListener("keydown", (e) => { if (e.key === "Escape" && $("#game") && !$("#game").hidden) close(); });
-  window.TiflanGamesTest = { speak, listen, listen, speak, game3, game4, pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
+  window.TiflanGamesTest = { translit, game3, speak, listen, listen, speak, game3, game4, pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
 })();
