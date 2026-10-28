@@ -36,3 +36,5 @@ All text is in js/i18n.js. The brand name is in index.html (class brand-en / bra
 3. Framework Preset: Other. Build Command, Output Directory, Install Command: leave empty. Root Directory: ./
 4. Deploy. Every later push to GitHub redeploys automatically.
 vercel.json (included) only adds safe headers and stops the service worker from being cached.
+
+Microphone problems? Open /mic-test.html on the same address and run the three tests. It shows the exact error.
