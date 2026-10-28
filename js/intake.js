@@ -69,7 +69,7 @@
   function speak(text) {
     if (!voiceOn || !window.speechSynthesis) return;
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text), l = sttLang(); u.lang = l; u.rate = 0.86; u.pitch = 1.2; u.volume = 0.9;
+    const u = new SpeechSynthesisUtterance(text), l = sttLang(); u.lang = l; u.rate = 0.9; u.pitch = 1.1; u.volume = 1;
     const vs = speechSynthesis.getVoices();
     const sv = (() => { try { return (JSON.parse(localStorage.getItem("tiflan-voice")) || {})[l.slice(0, 2) === "en" ? "en" : "ar"] || ""; } catch (e) { return ""; } })(); u.voice = vs.find((v) => sv && v.name === sv) || vs.find((v) => v.lang.replace("_", "-") === l) || vs.find((v) => v.lang.slice(0, 2) === l.slice(0, 2)) || null;
     u.onstart = () => setStatus("in_speak"); u.onend = u.onerror = () => setStatus("in_idle");

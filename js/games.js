@@ -35,8 +35,8 @@
     e_denied:"Microphone access is blocked. Allow it in the browser settings (lock icon next to the address), then try again.", e_net:"Speech recognition needs an internet connection. Please check it and try again.",
     e_cap:"The microphone is busy or missing. Close other apps that use it.", e_unsup:"This browser does not support speech recognition. Please use Chrome on Android or desktop.",
     e_lang:"This language is not supported for speech recognition on this device.", e_silent:"We didn't receive any sound. Check that the microphone works, the room is quiet, and ask your child to speak louder and closer to the device." });
-  Object.assign(S.ar, { vs:"إعدادات الصوت", vs_def:"الافتراضي (موصى به)", vs_none:"لا توجد أصوات متاحة على هذا الجهاز.", vs_tip:"اختاري صوتاً هادئاً وناعماً إن وُجد." });
-  Object.assign(S.en, { vs:"Voice settings", vs_def:"Default (recommended)", vs_none:"No voices available on this device.", vs_tip:"Pick a calm, soft voice if one is available." });
+  Object.assign(S.ar, { vs:"إعدادات الصوت", vs_def:"الافتراضي (موصى به)", vs_none:"لا توجد أصوات متاحة على هذا الجهاز.", vs_tip:"اختاري صوتاً هادئاً وناعماً إن وُجد. ارفعي صوت الوسائط في الجهاز إن كان خافتاً.", vs_both:"انطق الكلمة الغريبة أيضاً بالحروف اللاتينية (مثل batoofa)" });
+  Object.assign(S.en, { vs:"Voice settings", vs_def:"Default (recommended)", vs_none:"No voices available on this device.", vs_tip:"Pick a calm, soft voice if one is available. Raise the media volume on the device if it is quiet.", vs_both:"Also say the made-up word from its Latin spelling (like batoofa)" });
   const T = (k) => S[L()][k];
   const STT = { gulf:"ar-AE", egy:"ar-EG", lev:"ar-JO", mag:"ar-MA", msa:"ar-SA", en:"en-US" };
 
@@ -74,7 +74,7 @@
   const say = (text, code, voice) => new Promise((res) => {
     const ss = window.speechSynthesis; let done = false, tm = null;
     const fin = (ok) => { if (!done) { done = true; clearTimeout(tm); res({ ok }); } };
-    const u = new SpeechSynthesisUtterance(text); u.lang = code; u.rate = 0.85; u.pitch = 1.2; u.volume = 0.9; if (voice) u.voice = voice;   // slower, higher and gentler for children
+    const u = new SpeechSynthesisUtterance(text); u.lang = code; u.rate = 0.9; u.pitch = 1.1; u.volume = 1; if (voice) u.voice = voice;   // slower, higher and gentler for children
     u.onend = () => fin(true);
     u.onerror = (e) => { if (e.error === "interrupted" || e.error === "canceled") return; fin(false); };
     tm = setTimeout(() => fin(true), 12000);
@@ -85,16 +85,23 @@
   const saveVoice = (k, n) => { try { const o = JSON.parse(localStorage.getItem(VKEY)) || {}; o[k] = n; localStorage.setItem(VKEY, JSON.stringify(o)); } catch (e) {} };
   // Like the first version: ALWAYS try the real Arabic/English text with the language code (the phone's engine may speak it even if its voice list looks empty).
   // Only if that errors do we try an English voice reading a phonetic spelling (alt), and finally the screen shows the written word (ok:false).
+  const bothOn = () => { try { return localStorage.getItem("tiflan-both") !== "0"; } catch (e) { return true; } };
   async function speak(text, lang, alt) {
-    const ss = window.speechSynthesis; if (!ss) { await wait(800); return { ok: false, voice: false }; }
+    const ss = window.speechSynthesis; if (!ss) { await wait(800); return { ok: false, voice: false, info: "" }; }
     const vs = await voicesReady(), l = sttFor(lang), sv = savedVoice(lang === "en" ? "en" : "ar");
     const named = sv ? vs.find((v) => v.name === sv) : null;
     const auto = vs.find((v) => v.lang.replace("_", "-") === l) || vs.find((v) => v.lang.slice(0, 2) === l.slice(0, 2)) || null;
+    const en = vs.find((v) => v.name === savedVoice("en")) || vs.find((v) => v.lang.replace("_", "-") === "en-US") || vs.find((v) => v.lang.slice(0, 2) === "en") || null;
+    const used = named || auto, info = used ? used.name + " (" + used.lang + ")" : "default";
     if (ss.speaking || ss.pending) { ss.cancel(); await wait(150); } if (ss.paused) ss.resume();
-    let r = await say(text, l, named || auto); if (r.ok) return { ok: true, voice: !!auto };
-    if (named || auto) { r = await say(text, l, null); if (r.ok) return { ok: true, voice: !!auto }; }
-    if (alt) { r = await say(alt, "en-US", vs.find((v) => v.lang.slice(0, 2) === "en") || null); if (r.ok) return { ok: true, voice: false, alt: true }; }
-    return { ok: false, voice: !!auto };
+    let r = await say(text, l, used); if (!r.ok && used) r = await say(text, l, null);
+    if (r.ok) {
+      // Arabic word first, then the same word read from its Latin spelling (e.g. "batoofa") so the child always hears it clearly
+      if (alt && bothOn()) { await wait(400); await say(alt, "en-US", en); }
+      return { ok: true, voice: !!auto, info, both: !!(alt && bothOn()) };
+    }
+    if (alt) { r = await say(alt, "en-US", en); if (r.ok) return { ok: true, voice: false, alt: true, info: "English voice" }; }
+    return { ok: false, voice: !!auto, info };
   }
   window.TiflanSpeak = (t) => speak(t, L() === "en" ? "en" : "ar");
   const check = (my) => { if (my !== tok) throw new Error("cancel"); };
@@ -262,7 +269,7 @@
       c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("listen")}</h2>${shownWord}</div>`;
       let sp = await speak(w, l, alt); c.check(); if (sp.alt) viaAlt++; if (!sp.ok) silent++;
       for (;;) {
-        c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("tapmic")}</h2>${shownWord}${sp.ok ? "" : `<p class="micnote">${T("novoice")}</p>`}<div class="mrow"><button class="chip" id="hw" type="button">🔊 ${T("replay")}</button><button class="clapbtn" id="mk" type="button">🎤</button></div></div>`;
+        c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("tapmic")}</h2>${shownWord}${sp.ok ? "" : `<p class="micnote">${T("novoice")}</p>`}<p class="micnote" dir="ltr">🔊 ${esc(sp.info || "")}</p><div class="mrow"><button class="chip" id="hw" type="button">🔊 ${T("replay")}</button><button class="clapbtn" id="mk" type="button">🎤</button></div></div>`;
         const act = await new Promise((r) => { $("#hw").onclick = () => r("hear"); $("#mk").onclick = () => r("say"); }); c.check();
         if (act === "hear") { sp = await speak(w, l, alt); c.check(); if (sp.alt) viaAlt++; continue; }
         c.body.innerHTML = `<div class="echo"><div class="big mic">🎤</div><h2>${T("nowyou")}</h2></div>`;
@@ -440,7 +447,8 @@
   async function fillVoices(box) {
     const vs = await voicesReady(); if (!box) return; if (!vs.length) { box.innerHTML = `<p class="micnote">${T("vs_none")}</p>`; return; }
     const mk = (k, label) => `<label class="vrow"><span>${label}</span><select data-v="${k}"><option value="">${T("vs_def")}</option>${vs.filter((v) => v.lang.slice(0, 2) === k).map((v) => `<option value="${esc(v.name)}" ${v.name === savedVoice(k) ? "selected" : ""}>${esc(v.name)} (${esc(v.lang)})</option>`).join("")}</select></label>`;
-    box.innerHTML = mk("ar", "العربية") + mk("en", "English") + `<small class="micnote">${T("vs_tip")}</small>`;
+    box.innerHTML = mk("ar", "العربية") + mk("en", "English") + `<label class="chk"><input type="checkbox" id="vsBoth" ${bothOn() ? "checked" : ""}><span>${T("vs_both")}</span></label><small class="micnote">${T("vs_tip")}</small>`;
+    const vb = box.querySelector("#vsBoth"); if (vb) vb.onchange = () => { try { localStorage.setItem("tiflan-both", vb.checked ? "1" : "0"); } catch (e) {} };
     box.querySelectorAll("select").forEach((sel) => (sel.onchange = () => { saveVoice(sel.dataset.v, sel.value); speak(sel.dataset.v === "ar" ? "مرحباً، أنا طفلان" : "Hello, I am Tiflan", sel.dataset.v); }));
   }
   async function play(i, results, my) {
@@ -484,5 +492,5 @@
   };
   if ($("#gmClose")) $("#gmClose").onclick = close;
   addEventListener("keydown", (e) => { if (e.key === "Escape" && $("#game") && !$("#game").hidden) close(); });
-  window.TiflanGamesTest = { savedVoice, translit, game3, speak, listen, listen, speak, game3, game4, pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
+  window.TiflanGamesTest = { bothOn, savedVoice, translit, game3, speak, listen, listen, speak, game3, game4, pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
 })();
