@@ -230,22 +230,30 @@
   };
   const DIS = { ar:[["شمس","☀️"],["موز","🍌"],["بيت","🏠"],["زهرة","🌸"],["دب","🐻"],["حصان","🐴"],["نحلة","🐝"],["ساعة","⏰"],["كرسي","🪑"],["قارب","⛵"],["ثلج","❄️"],["عنب","🍇"],["بقرة","🐄"],["ضفدع","🐸"],["فراشة","🦋"],["نجمة","⭐"]],
     en: [["apple","🍎"],["book","📖"],["cup","☕"],["ball","⚽"],["duck","🦆"],["egg","🥚"],["milk","🥛"],["drum","🥁"],["shoe","👟"],["lion","🦁"],["pizza","🍕"],["bus","🚌"],["fork","🍴"],["leaf","🍃"],["cow","🐄"]] };
+  // Latin spellings shown (and spoken after the Arabic) so the word is clear even if the phone's Arabic voice is poor.
+  const TRA = { "قطة":"qitta","بطة":"batta","كلب":"kalb","قلب":"qalb","جمل":"jamal","بصل":"basal","كرة":"kura","ذرة":"dhura","ورد":"ward","برد":"bard","سمك":"samak","ملك":"malik","نار":"naar","قطار":"qitaar","جرس":"jaras","فرس":"faras","حوت":"hoot","صوت":"soot","باب":"baab","كتاب":"kitaab",
+    "فيل":"feel","نخيل":"nakheel","قمر":"qamar","شجر":"shajar","تفاح":"tuffaah","مفتاح":"miftaah","قلم":"qalam","علم":"alam","ولد":"walad","أسد":"asad","مطر":"matar","سفر":"safar","دجاجة":"dajaaja","زجاجة":"zujaaja",
+    "سيف":"sayf","صيف":"sayf","جبل":"jabal","عسل":"asal","بحر":"bahr","صقر":"saqr","خروف":"kharoof","حروف":"huroof","طيارة":"tayyaara","سيارة":"sayyaara","شجرة":"shajara","ثمرة":"thamara",
+    "شمس":"shams","موز":"moz","بيت":"bayt","زهرة":"zahra","دب":"dubb","حصان":"hisaan","نحلة":"nahla","ساعة":"saa-a","كرسي":"kursi","قارب":"qaarib","ثلج":"thalj","عنب":"enab","بقرة":"baqara","ضفدع":"difda","فراشة":"faraasha","نجمة":"najma",
+    "بالون":"baloon","جزر":"jazar","قرد":"qird","فار":"faar","سلحفاة":"sulhafaa","سفينة":"safeena","شمعة":"sham-a","نمر":"namir","مدرسة":"madrasa","تاج":"taaj","تلفاز":"tilfaaz","تمساح":"timsaah",
+    "دراجة":"darraaja","دلفين":"dulfeen","حليب":"haleeb","حمامة":"hamaama","عين":"ayn","صندوق":"sundooq","صابون":"saaboon","صاروخ":"saarookh","خيمة":"kheyma","خبز":"khubz","خيار":"khiyaar" };
   const WIN = { 4:[1], 5:[1,2], 6:[1,2], 7:[2,3], 8:[2,3] };
   const ek = (w) => nz(w).slice(-2);
   function rhymeTrial(age, l, it) {
     const [w, we, ans] = it, K = G2[A(age)][1];
     const dis = shuffle(DIS[l].filter((d) => d[0] !== w && d[0] !== ans[0] && ek(d[0]) !== ek(w) && ek(d[0]) !== ek(ans[0]))).slice(0, K);
-    return { w, we, opts: shuffle([{ t: ans[0], e: ans[1], ok: true }].concat(dis.map((d) => ({ t: d[0], e: d[1], ok: false })))) };
+    return { w, we, wtr: l === "ar" ? TRA[w] || "" : "", opts: shuffle([{ t: ans[0], e: ans[1], ok: true, tr: l === "ar" ? TRA[ans[0]] || "" : "" }].concat(dis.map((d) => ({ t: d[0], e: d[1], ok: false, tr: l === "ar" ? TRA[d[0]] || "" : "" })))) };
   }
   async function game2(c) {
     const age = A(c.age), N = G2[age][0], items = gather(N, (l, k) => pickFresh("rh-" + l, RH[l].filter((x) => WIN[age].includes(x[3])), k)), trials = []; let replays = 0;
     for (let t = 0; t < items.length; t++) {
-      c.prog(t, items.length); c.check(); const { l, it } = items[t], { w, we, opts } = rhymeTrial(age, l, it);
-      c.body.innerHTML = `<div class="rhyme"><div class="word"><span class="em">${we}</span><b dir="auto">${w}</b><button class="chip" id="rp" type="button">🔊 ${T("replay")}</button></div><div class="choices" id="ch" style="visibility:hidden"></div></div>`;
+      c.prog(t, items.length); c.check(); const { l, it } = items[t], { w, we, wtr, opts } = rhymeTrial(age, l, it);
+      c.body.innerHTML = `<div class="rhyme"><div class="word"><span class="em">${we}</span><b dir="auto">${w}</b>${wtr ? `<div class="tlit">${esc(wtr)}</div>` : ""}<button class="chip" id="rp" type="button">🔊 ${T("replay")}</button><p class="micnote" id="vinfo" dir="ltr"></p></div><div class="choices" id="ch" style="visibility:hidden"></div></div>`;
       const ch = $("#ch"); let resolve = null, shown = false;
-      opts.forEach((o, i) => { const b = document.createElement("button"); b.className = "opt"; b.type = "button"; b.innerHTML = `<span>${o.e}</span><small dir="auto">${o.t}</small>`; b.onclick = () => shown && resolve && resolve(i); ch.appendChild(b); });
-      $("#rp").onclick = () => { if (shown) replays++; speak(w, l); };
-      await speak(w, l); c.check(); ch.style.visibility = "visible"; shown = true; const onset = performance.now();
+      opts.forEach((o, i) => { const b = document.createElement("button"); b.className = "opt"; b.type = "button"; b.innerHTML = `<span>${o.e}</span><small dir="auto">${o.t}</small>${o.tr ? `<small class="tl2" dir="ltr">${esc(o.tr)}</small>` : ""}`; b.onclick = () => shown && resolve && resolve(i); ch.appendChild(b); });
+      const say2 = () => speak(w, l, wtr || null).then((sp) => { const v = $("#vinfo"); if (v) v.textContent = "🔊 " + (sp.info || ""); return sp; });
+      $("#rp").onclick = () => { if (shown) replays++; say2(); };
+      await say2(); c.check(); ch.style.visibility = "visible"; shown = true; const onset = performance.now();
       const k = await new Promise((r) => { resolve = r; setTimeout(() => r(-1), 12000); });
       const rt = Math.round(performance.now() - onset); shown = false; c.check();
       const bs = ch.children; opts.forEach((o, i) => { if (o.ok) bs[i].classList.add(k === i ? "ok" : "hint"); else if (i === k) bs[i].classList.add("no"); });
@@ -413,17 +421,19 @@
   function soundTrial(age, l, key) {
     const K = G6[Math.max(6, age)][1], grp = shuffle(ST[l][key]), target = grp[0], answer = grp[1];
     const others = shuffle(Object.keys(ST[l]).filter((k) => k !== key && !conf(k, key))).slice(0, K - 1).map((k) => shuffle(ST[l][k])[0]);
-    return { target, opts: shuffle([{ t: answer[0], e: answer[1], ok: true }].concat(others.map((o) => ({ t: o[0], e: o[1], ok: false })))) };
+    const tr = (w) => (l === "ar" ? TRA[w] || "" : "");
+    return { target, ttr: tr(target[0]), opts: shuffle([{ t: answer[0], e: answer[1], ok: true, tr: tr(answer[0]) }].concat(others.map((o) => ({ t: o[0], e: o[1], ok: false, tr: tr(o[0]) })))) };
   }
   async function game6(c) {
     const age = A(c.age), N = G6[Math.max(6, age)][0], trials = [], items = gather(N, (l, k) => pickFresh("sd-" + l, Object.keys(ST[l]), k, (x) => x));
     for (let t = 0; t < items.length; t++) {
-      c.prog(t, items.length); c.check(); const { l, it: key } = items[t], { target, opts } = soundTrial(age, l, key);
-      c.body.innerHTML = `<div class="rhyme"><div class="word"><span class="em">${target[1]}</span><b dir="auto">${target[0]}</b><button class="chip" id="rp" type="button">🔊 ${T("replay")}</button></div><div class="choices" id="ch" style="visibility:hidden"></div></div>`;
+      c.prog(t, items.length); c.check(); const { l, it: key } = items[t], { target, ttr, opts } = soundTrial(age, l, key);
+      c.body.innerHTML = `<div class="rhyme"><div class="word"><span class="em">${target[1]}</span><b dir="auto">${target[0]}</b>${ttr ? `<div class="tlit">${esc(ttr)}</div>` : ""}<button class="chip" id="rp" type="button">🔊 ${T("replay")}</button><p class="micnote" id="vinfo" dir="ltr"></p></div><div class="choices" id="ch" style="visibility:hidden"></div></div>`;
       const ch = $("#ch"); let resolve = null, shown = false;
-      opts.forEach((o, i) => { const b = document.createElement("button"); b.className = "opt"; b.type = "button"; b.innerHTML = `<span>${o.e}</span><small dir="auto">${o.t}</small>`; b.onclick = () => shown && resolve && resolve(i); ch.appendChild(b); });
-      $("#rp").onclick = () => speak(target[0], l);
-      await speak(target[0], l); c.check(); ch.style.visibility = "visible"; shown = true; const onset = performance.now();
+      opts.forEach((o, i) => { const b = document.createElement("button"); b.className = "opt"; b.type = "button"; b.innerHTML = `<span>${o.e}</span><small dir="auto">${o.t}</small>${o.tr ? `<small class="tl2" dir="ltr">${esc(o.tr)}</small>` : ""}`; b.onclick = () => shown && resolve && resolve(i); ch.appendChild(b); });
+      const say6 = () => speak(target[0], l, ttr || null).then((sp) => { const v = $("#vinfo"); if (v) v.textContent = "🔊 " + (sp.info || ""); return sp; });
+      $("#rp").onclick = () => say6();
+      await say6(); c.check(); ch.style.visibility = "visible"; shown = true; const onset = performance.now();
       const k = await new Promise((r) => { resolve = r; setTimeout(() => r(-1), 12000); }), rt = Math.round(performance.now() - onset); shown = false; c.check();
       const bs = ch.children; opts.forEach((o, i) => { if (o.ok) bs[i].classList.add(k === i ? "ok" : "hint"); else if (i === k) bs[i].classList.add("no"); });
       trials.push({ t, lang: l, sound: key, word: target[0], chosen: k < 0 ? null : opts[k].t, correct: k >= 0 && opts[k].ok, omitted: k < 0, rt: k < 0 ? null : rt }); await wait(1000);
@@ -492,5 +502,5 @@
   };
   if ($("#gmClose")) $("#gmClose").onclick = close;
   addEventListener("keydown", (e) => { if (e.key === "Escape" && $("#game") && !$("#game").hidden) close(); });
-  window.TiflanGamesTest = { bothOn, savedVoice, translit, game3, speak, listen, listen, speak, game3, game4, pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
+  window.TiflanGamesTest = { game6, TRA, game2, bothOn, savedVoice, translit, game3, speak, listen, listen, speak, game3, game4, pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
 })();

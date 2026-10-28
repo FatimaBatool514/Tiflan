@@ -277,3 +277,5 @@ html[dir=rtl] .mk{translate:50% 0}
 .tlit{font-size:1.7rem;letter-spacing:.06em;color:var(--aqua);direction:ltr;text-align:center}
 .vset{width:100%;max-width:420px;padding:8px 14px;border-radius:14px;background:rgba(255,255,255,.06);font-size:.9rem}.vset summary{cursor:pointer;min-height:36px;display:flex;align-items:center}
 .vrow{display:flex;flex-direction:column;gap:4px;margin:8px 0}.vrow select{min-height:44px;border-radius:12px;border:2px solid var(--line);background:rgba(255,255,255,.08);color:var(--cloud);padding:0 10px;font:inherit}.vrow select option{color:#222}
+
+.opt .tl2{font-size:.82rem;color:var(--aqua);direction:ltr;letter-spacing:.04em}
