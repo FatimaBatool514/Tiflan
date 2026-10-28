@@ -29,3 +29,10 @@ All text is in js/i18n.js. The brand name is in index.html (class brand-en / bra
 
 - Fixes: fresh items every play, age tiers, Arabic/English word language choice, automatic speech checking in Games 3 and 4, new Game 6 (Sound Detective), results now open after the games, print report fixed.
 - Voice fix: recognition restarts itself when the browser ends a session early, falls back to other Arabic dialect codes, and a "great" is shown only when speech was actually heard.
+
+## Deploy on Vercel (free, no build)
+1. Put the project files at the ROOT of a GitHub repository (index.html must be at the top level, not inside a folder).
+2. vercel.com > sign in with GitHub > Add New > Project > Import your repository.
+3. Framework Preset: Other. Build Command, Output Directory, Install Command: leave empty. Root Directory: ./
+4. Deploy. Every later push to GitHub redeploys automatically.
+vercel.json (included) only adds safe headers and stops the service worker from being cached.
