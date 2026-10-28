@@ -43,7 +43,7 @@
       if (m.errors >= 3) { lv = Math.max(lv, 1); ev.push(E(`أخطاء رصدها التطبيق: ${m.errors === 4 ? "4+" : m.errors}`,`Mistakes detected by the app: ${m.errors === 4 ? "4+" : m.errors}`)); }
       const low = (m.scored != null ? m.scored : m.voiceTrials || 0) < m.n / 2; if (low) ev.push(E("تعذّر فحص عدد من الإجابات بالتعرف على الكلام، فالدقة أقل","Many answers could not be checked by speech recognition, so accuracy is lower"));
       S.push({ id:"naming", level:lv, ev, lowConf:low }); tr("naming", `median ${sec.toFixed(2)} s`, lv); } else none("naming");
-    // 4. Attention (Follow the Falcon + parent report)
+    // 4. Attention (Follow the Eyes + parent report)
     if (g.g1) { const m = g.g1.metrics, acc = m.correct / m.n, th = TH.attention; let lv = hi(acc, th.acc);
       if (m.omissions >= th.omissionsFollow) lv = 2; else if (m.omissions >= th.omissionsWatch) lv = Math.max(lv, 1);
       if (m.premature >= (band === "young" ? th.earlyWatchYoung : th.earlyWatchOlder)) lv = Math.max(lv, 1);

@@ -3,11 +3,11 @@ Early learning screening for children aged 4–8 (Arabic + English). Static site
 
 ## Steps done
 - Step 1: design system, Arabic/English RTL switch (css/style.css, js/i18n.js)
-- Step 2: hero screen with cursor/touch-tracking falcon and live readings (index.html, js/app.js)
+- Step 2: hero screen with cursor/touch-tracking baby mascot and live readings (index.html, js/app.js)
 
 - Step 3: consent, child profile, privacy storage (js/onboarding.js, js/i18n-onboard.js)
 - Step 4: intake voice agent (js/intake.js, js/config.js, worker/gemini-proxy.js)
-- Step 5: games engine, Game 1 Follow the Falcon, Game 2 Rhyme Nest (js/games.js)
+- Step 5: games engine, Game 1 Follow the Eyes, Game 2 Rhyme Nest (js/games.js)
 - Step 6: Game 3 Silly Word Echo, Game 4 Quick Naming Race (in js/games.js)
 - Step 7: Game 5 Letter Twins (match + tracing), Game 6 Clap the Syllables (in js/games.js)
 - Step 8: Risk Scoring Agent + results dashboard (js/risk.js). Thresholds are PROTOTYPE values, need specialist review.

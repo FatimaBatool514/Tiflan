@@ -2,7 +2,7 @@
 (() => {
   const $ = (s) => document.querySelector(s), html = document.documentElement, L = () => html.lang;
   const S = {
-    ar: { t1:"تابع الصقر", i1:"شوف الصقر وين يطالع، ولمس الشي اللي يطالعه بسرعة!", t2:"عش القوافي", i2:"اسمع الكلمة، واختر الصورة اللي آخرها يشبه آخر الكلمة.",
+    ar: { t1:"تابع العيون", i1:"شوف وين يطالع الطفل، ولمس الشي اللي يطالعه بسرعة!", t2:"عش القوافي", i2:"اسمع الكلمة، واختر الصورة اللي آخرها يشبه آخر الكلمة.",
       t3:"صدى الكلمات الغريبة", i3:"اسمع الكلمة الغريبة، وقلها بعدي بالضبط!", n3:"يحتاج الميكروفون. قد يعالج المتصفح الصوت عبر خدمة سحابية، ولا نحفظ أي تسجيل.",
       t4:"سباق التسمية", i4:"قل اسم كل صورة بسرعة وبصوت عالي!", n4:"يحتاج الميكروفون. قد يعالج المتصفح الصوت عبر خدمة سحابية، ولا نحفظ أي تسجيل.",
       t5:"توأم الحروف", i5:"شوف الحرف الكبير، واختر الحرف اللي نفسه بالضبط! بعدين ارسم الحروف بإصبعك.",
@@ -13,7 +13,7 @@
       nospeech:"ما قدرنا نسمع الصوت على هذا الجهاز، لذلك نتخطى هذه اللعبة.", noscore:"لم يتم فحص النطق على هذا الجهاز",
       s1:"{c} من {n} صحيحة · زمن الاستجابة المعتاد {m} ث · لمسات مبكرة {p}", s2:"{c} من {n} صحيحة · زمن الاستجابة المعتاد {m} ث · إعادة السماع {r}",
       s3:"{c} من {s} كلمات صحيحة (فحص تلقائي)", s4:"زمن التسمية المعتاد {m} ث · أخطاء رصدها التطبيق {e} من {s}", s5:"{c} من {n} حروف صحيحة · زمن الاستجابة {m} ث · دقة التتبع التقريبية {q}%", s6:"{c} من {n} أصوات أولى صحيحة · زمن الاستجابة {m} ث" },
-    en: { t1:"Follow the Falcon", i1:"Watch where the falcon looks, then touch what it is looking at, quickly!", t2:"Rhyme Nest", i2:"Listen to the word, then pick the picture that ends with the same sound.",
+    en: { t1:"Follow the Eyes", i1:"Watch where the baby looks, then touch what it is looking at, quickly!", t2:"Rhyme Nest", i2:"Listen to the word, then pick the picture that ends with the same sound.",
       t3:"Silly Word Echo", i3:"Listen to the silly word, then say it exactly like me!", n3:"Needs the microphone. Your browser may process speech in the cloud. We store no recordings.",
       t4:"Quick Naming Race", i4:"Say the name of each picture, as fast as you can and out loud!", n4:"Needs the microphone. Your browser may process speech in the cloud. We store no recordings.",
       t5:"Letter Twins", i5:"Look at the big letter and tap the one that is exactly the same! Then trace letters with your finger.",
@@ -35,6 +35,8 @@
     e_denied:"Microphone access is blocked. Allow it in the browser settings (lock icon next to the address), then try again.", e_net:"Speech recognition needs an internet connection. Please check it and try again.",
     e_cap:"The microphone is busy or missing. Close other apps that use it.", e_unsup:"This browser does not support speech recognition. Please use Chrome on Android or desktop.",
     e_lang:"This language is not supported for speech recognition on this device.", e_silent:"We didn't receive any sound. Check that the microphone works, the room is quiet, and ask your child to speak louder and closer to the device." });
+  Object.assign(S.ar, { vs:"إعدادات الصوت", vs_def:"الافتراضي (موصى به)", vs_none:"لا توجد أصوات متاحة على هذا الجهاز.", vs_tip:"اختاري صوتاً هادئاً وناعماً إن وُجد." });
+  Object.assign(S.en, { vs:"Voice settings", vs_def:"Default (recommended)", vs_none:"No voices available on this device.", vs_tip:"Pick a calm, soft voice if one is available." });
   const T = (k) => S[L()][k];
   const STT = { gulf:"ar-AE", egy:"ar-EG", lev:"ar-JO", mag:"ar-MA", msa:"ar-SA", en:"en-US" };
 
@@ -72,23 +74,27 @@
   const say = (text, code, voice) => new Promise((res) => {
     const ss = window.speechSynthesis; let done = false, tm = null;
     const fin = (ok) => { if (!done) { done = true; clearTimeout(tm); res({ ok }); } };
-    const u = new SpeechSynthesisUtterance(text); u.lang = code; u.rate = 0.9; if (voice) u.voice = voice;
+    const u = new SpeechSynthesisUtterance(text); u.lang = code; u.rate = 0.85; u.pitch = 1.2; u.volume = 0.9; if (voice) u.voice = voice;   // slower, higher and gentler for children
     u.onend = () => fin(true);
     u.onerror = (e) => { if (e.error === "interrupted" || e.error === "canceled") return; fin(false); };
     tm = setTimeout(() => fin(true), 12000);
     ss.speak(u);
   });
-  // Uses the Arabic (or English) voice installed on the phone. Only if the phone has NO voice for the language does it fall back to
-  // an English voice reading a phonetic spelling (alt), and finally to showing the written word (ok:false).
+  const VKEY = "tiflan-voice";
+  const savedVoice = (k) => { try { return (JSON.parse(localStorage.getItem(VKEY)) || {})[k] || ""; } catch (e) { return ""; } };
+  const saveVoice = (k, n) => { try { const o = JSON.parse(localStorage.getItem(VKEY)) || {}; o[k] = n; localStorage.setItem(VKEY, JSON.stringify(o)); } catch (e) {} };
+  // Like the first version: ALWAYS try the real Arabic/English text with the language code (the phone's engine may speak it even if its voice list looks empty).
+  // Only if that errors do we try an English voice reading a phonetic spelling (alt), and finally the screen shows the written word (ok:false).
   async function speak(text, lang, alt) {
     const ss = window.speechSynthesis; if (!ss) { await wait(800); return { ok: false, voice: false }; }
-    const vs = await voicesReady(), l = sttFor(lang);
-    const pick = (code) => vs.find((v) => v.lang.replace("_", "-") === code) || vs.find((v) => v.lang.slice(0, 2) === code.slice(0, 2)) || null;
+    const vs = await voicesReady(), l = sttFor(lang), sv = savedVoice(lang === "en" ? "en" : "ar");
+    const named = sv ? vs.find((v) => v.name === sv) : null;
+    const auto = vs.find((v) => v.lang.replace("_", "-") === l) || vs.find((v) => v.lang.slice(0, 2) === l.slice(0, 2)) || null;
     if (ss.speaking || ss.pending) { ss.cancel(); await wait(150); } if (ss.paused) ss.resume();
-    const v1 = pick(l);
-    if (v1 || !vs.length) { const r = await say(text, l, v1); if (r.ok) return { ok: true, voice: !!v1 }; }
-    if (!v1 && alt) { const r = await say(alt, "en-US", pick("en-US")); if (r.ok) return { ok: true, voice: false, alt: true }; }
-    return { ok: false, voice: !!v1 };
+    let r = await say(text, l, named || auto); if (r.ok) return { ok: true, voice: !!auto };
+    if (named || auto) { r = await say(text, l, null); if (r.ok) return { ok: true, voice: !!auto }; }
+    if (alt) { r = await say(alt, "en-US", vs.find((v) => v.lang.slice(0, 2) === "en") || null); if (r.ok) return { ok: true, voice: false, alt: true }; }
+    return { ok: false, voice: !!auto };
   }
   window.TiflanSpeak = (t) => speak(t, L() === "en" ? "en" : "ar");
   const check = (my) => { if (my !== tok) throw new Error("cancel"); };
@@ -252,10 +258,11 @@
     if (!SR) await micHelp(c, "unsupported");
     for (let t = 0; t < N && !unavailable; t++) {
       c.prog(t, N); c.check(); const { w, s, l, alt } = items[t]; let tries = 0, res = null;
-      c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("listen")}</h2></div>`;
+      const shownWord = `<div class="wbig" dir="auto">${esc(w)}</div>${alt ? `<div class="tlit">${esc(alt)}</div>` : ""}`;
+      c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("listen")}</h2>${shownWord}</div>`;
       let sp = await speak(w, l, alt); c.check(); if (sp.alt) viaAlt++; if (!sp.ok) silent++;
       for (;;) {
-        c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("tapmic")}</h2>${sp.ok ? "" : `<div class="wbig" dir="auto">${esc(w)}</div><p class="micnote">${T("novoice")}</p>`}<div class="mrow"><button class="chip" id="hw" type="button">🔊 ${T("replay")}</button><button class="clapbtn" id="mk" type="button">🎤</button></div></div>`;
+        c.body.innerHTML = `<div class="echo"><div class="big">🦜</div><h2>${T("tapmic")}</h2>${shownWord}${sp.ok ? "" : `<p class="micnote">${T("novoice")}</p>`}<div class="mrow"><button class="chip" id="hw" type="button">🔊 ${T("replay")}</button><button class="clapbtn" id="mk" type="button">🎤</button></div></div>`;
         const act = await new Promise((r) => { $("#hw").onclick = () => r("hear"); $("#mk").onclick = () => r("say"); }); c.check();
         if (act === "hear") { sp = await speak(w, l, alt); c.check(); if (sp.alt) viaAlt++; continue; }
         c.body.innerHTML = `<div class="echo"><div class="big mic">🎤</div><h2>${T("nowyou")}</h2></div>`;
@@ -419,17 +426,23 @@
   }
 
   /* ---------- engine ---------- */
-  const FACE = `<svg class="fl" viewBox="0 0 200 200" aria-hidden="true"><g class="hd"><path d="M82 34c-4-14 4-24 9-28 1 8 5 12 9 14 4-2 8-6 9-14 5 4 13 14 9 28z" fill="#C98D4B"/>
-    <circle cx="100" cy="100" r="82" fill="#E9B872"/><ellipse cx="100" cy="112" rx="66" ry="54" fill="#FFF1D6"/><circle cx="52" cy="126" r="11" fill="#FF8A6B" opacity=".45"/><circle cx="148" cy="126" r="11" fill="#FF8A6B" opacity=".45"/>
-    <path d="M60 108c-4 10-3 22 4 29-1-10 1-18 6-24zM140 108c4 10 3 22-4 29 1-10-1-18-6-24z" fill="#6B4423"/><circle cx="72" cy="92" r="24" fill="#fff"/><circle cx="128" cy="92" r="24" fill="#fff"/>
-    <g class="pup"><circle cx="72" cy="92" r="12" fill="#2B1B5E"/><circle cx="68" cy="88" r="4" fill="#fff"/></g><g class="pup"><circle cx="128" cy="92" r="12" fill="#2B1B5E"/><circle cx="124" cy="88" r="4" fill="#fff"/></g>
-    <path d="M84 120c0-6 32-6 32 0 0 10-7 22-16 28-9-6-16-18-16-28z" fill="#FFC94D"/></g></svg>`;
+  const FACE = `<svg class="fl" viewBox="0 0 200 200" aria-hidden="true"><g class="hd"><circle cx="30" cy="106" r="14" fill="#EBB98F"/><circle cx="170" cy="106" r="14" fill="#EBB98F"/><circle cx="100" cy="100" r="82" fill="#F2C6A0"/>
+    <clipPath id="hcG"><circle cx="100" cy="100" r="82"/></clipPath><path d="M10 10H190V84Q100 28 10 84Z" fill="#4a2e1c" clip-path="url(#hcG)"/><path d="M92 38c-2-14 16-22 26-12 8 8 0 20-10 18 6-8 0-14-8-12z" fill="#4a2e1c"/>
+    <circle cx="52" cy="128" r="12" fill="#F29C8A" opacity=".55"/><circle cx="148" cy="128" r="12" fill="#F29C8A" opacity=".55"/><circle cx="72" cy="94" r="22" fill="#fff"/><circle cx="128" cy="94" r="22" fill="#fff"/>
+    <g class="pup"><circle cx="72" cy="95" r="12" fill="#4a2e1c"/><circle cx="72" cy="95" r="6" fill="#1a0f0a"/><circle cx="68" cy="90" r="4" fill="#fff"/></g><g class="pup"><circle cx="128" cy="95" r="12" fill="#4a2e1c"/><circle cx="128" cy="95" r="6" fill="#1a0f0a"/><circle cx="124" cy="90" r="4" fill="#fff"/></g>
+    <ellipse cx="100" cy="122" rx="6" ry="5" fill="#E3A57C"/><path d="M80 140c10 12 30 12 40 0" stroke="#B5584A" stroke-width="5" fill="none" stroke-linecap="round"/></g></svg>`;
   const GAMES = [{ id:"g1", icon:"⭐", t:"t1", i:"i1", run:game1, line:"s1" }, { id:"g2", icon:"🐣", t:"t2", i:"i2", run:game2, line:"s2", lang:1 },
     { id:"g3", icon:"🦜", t:"t3", i:"i3", note:"n3", run:game3, line:"s3", lang:1 }, { id:"g4", icon:"🏁", t:"t4", i:"i4", note:"n4", run:game4, line:"s4", lang:1 },
     { id:"g5", icon:"🔤", t:"t5", i:"i5", run:game5, line:"s5", lang:1 }, { id:"g6", icon:"🔎", t:"t6", i:"i6", ex:1, run:game6, line:"s6", lang:1 }];
   const fmt = (s, m) => s.replace(/\{(\w)\}/g, (_, k) => m[k]);
   const defCL = () => { const p = prof(), h = p && p.child.homeLang; return h === "en" ? "en" : h === "both" ? "mix" : "ar"; };
 
+  async function fillVoices(box) {
+    const vs = await voicesReady(); if (!box) return; if (!vs.length) { box.innerHTML = `<p class="micnote">${T("vs_none")}</p>`; return; }
+    const mk = (k, label) => `<label class="vrow"><span>${label}</span><select data-v="${k}"><option value="">${T("vs_def")}</option>${vs.filter((v) => v.lang.slice(0, 2) === k).map((v) => `<option value="${esc(v.name)}" ${v.name === savedVoice(k) ? "selected" : ""}>${esc(v.name)} (${esc(v.lang)})</option>`).join("")}</select></label>`;
+    box.innerHTML = mk("ar", "العربية") + mk("en", "English") + `<small class="micnote">${T("vs_tip")}</small>`;
+    box.querySelectorAll("select").forEach((sel) => (sel.onchange = () => { saveVoice(sel.dataset.v, sel.value); speak(sel.dataset.v === "ar" ? "مرحباً، أنا طفلان" : "Hello, I am Tiflan", sel.dataset.v); }));
+  }
   async function play(i, results, my) {
     const plan = window.Tiflan.plan(), g = GAMES.slice(0, plan)[i], p = prof(), age = p ? p.child.age : 6, body = $("#gmBody");
     $("#gmTitle").textContent = T(g.t); $("#gmCount").textContent = fmt(T("count"), { i: i + 1, n: plan }); $("#gmProg").innerHTML = "";
@@ -437,7 +450,8 @@
     const ex = g.ex ? `<div class="exs"><span>${L() === "en" ? "🐱" : "🐱"}<br>${T("exw")[0]}</span><span>${L() === "en" ? "🔑" : "🌙"}<br>${T("exw")[1]}</span></div><p class="micnote">${T("ex6")}</p>` : "";
     const tests = g.note ? `<div class="lcs"><div class="chips"><button type="button" class="chip" id="gmMic">🎤 ${T("mictest")}</button><button type="button" class="chip" id="gmVoice">🔊 ${T("voicetest")}</button></div><small class="sub" id="gmTestOut"></small></div>` : "";
     body.innerHTML = `<div class="gm-intro"><div class="big">${g.icon}</div><h2>${T(g.t)}</h2><p>${T(g.i)}</p>${ex}${g.note ? `<p class="micnote">${T(g.note)}</p>` : ""}${chips}${tests}
-      <button class="pill" id="gmGo" type="button"><span>${T("start")}</span><b>▶</b></button></div>`;
+      <details class="vset"><summary>🔊 ${T("vs")}</summary><div id="vsBox"></div></details><button class="pill" id="gmGo" type="button"><span>${T("start")}</span><b>▶</b></button></div>`;
+    fillVoices($("#vsBox"));
     body.querySelectorAll("[data-cl]").forEach((b) => (b.onclick = () => { CL = b.dataset.cl; body.querySelectorAll("[data-cl]").forEach((x) => x.setAttribute("aria-pressed", x === b)); }));
     if ($("#gmMic")) {
       const out = $("#gmTestOut"), tl = () => (CL === "en" ? "en" : "ar");
@@ -470,5 +484,5 @@
   };
   if ($("#gmClose")) $("#gmClose").onclick = close;
   addEventListener("keydown", (e) => { if (e.key === "Escape" && $("#game") && !$("#game").hidden) close(); });
-  window.TiflanGamesTest = { translit, game3, speak, listen, listen, speak, game3, game4, pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
+  window.TiflanGamesTest = { savedVoice, translit, game3, speak, listen, listen, speak, game3, game4, pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
 })();

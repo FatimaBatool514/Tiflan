@@ -3,7 +3,7 @@
 Open the app with `?demo=1` at the end of the URL (or tap "Demo mode" on the first screen). No microphone, Wi-Fi or child needed.
 
 1. **Hook (30 s).** State the problem with a source you have checked yourself (verify the "1 in 5" figure before using it).
-2. **Hero (20 s).** Move the pointer: the falcon follows it. "The first game is hidden in the first screen."
+2. **Hero (20 s).** Move the pointer: the baby's eyes follow it. "The first game is hidden in the first screen."
 3. **Results (60 s).** Show the Demo result: three levels, no red, plain-Arabic voiced explanation. Point at one skill card and its evidence lines.
 4. **"How was this calculated?" (30 s).** Open it. "Rules, not a black box. A doctor can trace every number."
 5. **Behind the scenes (45 s).** Open it: the agents, their inputs and outputs, and the event log.

@@ -272,3 +272,8 @@ html[dir=rtl] .mk{translate:50% 0}
 @media print{html{background:#fff!important}body.printing{overflow:visible!important;height:auto!important;display:block!important}}
 
 .heard{color:rgba(255,248,236,.55);font-size:.9rem;min-height:1.2em}
+
+/* ===== baby mascot, voice settings, word display ===== */
+.tlit{font-size:1.7rem;letter-spacing:.06em;color:var(--aqua);direction:ltr;text-align:center}
+.vset{width:100%;max-width:420px;padding:8px 14px;border-radius:14px;background:rgba(255,255,255,.06);font-size:.9rem}.vset summary{cursor:pointer;min-height:36px;display:flex;align-items:center}
+.vrow{display:flex;flex-direction:column;gap:4px;margin:8px 0}.vrow select{min-height:44px;border-radius:12px;border:2px solid var(--line);background:rgba(255,255,255,.08);color:var(--cloud);padding:0 10px;font:inherit}.vrow select option{color:#222}
