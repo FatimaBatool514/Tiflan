@@ -35,8 +35,8 @@
     e_denied:"Microphone access is blocked. Allow it in the browser settings (lock icon next to the address), then try again.", e_net:"Speech recognition needs an internet connection. Please check it and try again.",
     e_cap:"The microphone is busy or missing. Close other apps that use it.", e_unsup:"This browser does not support speech recognition. Please use Chrome on Android or desktop.",
     e_lang:"This language is not supported for speech recognition on this device.", e_silent:"We didn't receive any sound. Check that the microphone works, the room is quiet, and ask your child to speak louder and closer to the device." });
-  Object.assign(S.ar, { vs:"إعدادات الصوت", vs_def:"الافتراضي (موصى به)", vs_none:"لا توجد أصوات متاحة على هذا الجهاز.", vs_tip:"اختاري صوتاً هادئاً وناعماً إن وُجد. ارفعي صوت الوسائط في الجهاز إن كان خافتاً.", vs_both:"انطق الكلمة الغريبة أيضاً بالحروف اللاتينية (مثل batoofa)" });
-  Object.assign(S.en, { vs:"Voice settings", vs_def:"Default (recommended)", vs_none:"No voices available on this device.", vs_tip:"Pick a calm, soft voice if one is available. Raise the media volume on the device if it is quiet.", vs_both:"Also say the made-up word from its Latin spelling (like batoofa)" });
+  Object.assign(S.ar, { e_desk:"على اللابتوب: اسمحي للمتصفح بالميكروفون في إعدادات خصوصية النظام، واختاري الميكروفون الصحيح من أيقونة القفل ثم الميكروفون، واستخدمي Chrome أو Edge. افتحي صفحة mic-test.html لمعرفة السبب بالضبط.", vs:"إعدادات الصوت", vs_def:"الافتراضي (موصى به)", vs_none:"لا توجد أصوات متاحة على هذا الجهاز.", vs_tip:"اختاري صوتاً هادئاً وناعماً إن وُجد. ارفعي صوت الوسائط في الجهاز إن كان خافتاً.", vs_both:"انطق الكلمة الغريبة أيضاً بالحروف اللاتينية (مثل batoofa)" });
+  Object.assign(S.en, { e_desk:"On a laptop: allow the browser to use the microphone in your system privacy settings, pick the right microphone via the lock icon then Microphone, and use Chrome or Edge. Open mic-test.html to see the exact cause.", vs:"Voice settings", vs_def:"Default (recommended)", vs_none:"No voices available on this device.", vs_tip:"Pick a calm, soft voice if one is available. Raise the media volume on the device if it is quiet.", vs_both:"Also say the made-up word from its Latin spelling (like batoofa)" });
   const T = (k) => S[L()][k];
   const STT = { gulf:"ar-AE", egy:"ar-EG", lev:"ar-JO", mag:"ar-MA", msa:"ar-SA", en:"en-US" };
 
@@ -110,7 +110,7 @@
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition; let micOK = true;
   const esc = (x) => String(x == null ? "" : x).replace(/[&<>]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]));
   // Continuous recognition that ends itself after a short silence, starts only when the mic is really capturing, and reports why it failed.
-  function listen(lang, ms, onReady, endGap = 1400) {
+  function listen(lang, ms, onReady, endGap = 1400, onInterim) {
     return new Promise((res) => {
       if (!SR || !micOK) return res({ alts: [], latency: null, none: true, err: !SR ? "unsupported" : "denied" });
       // Browsers often end a recognition session early (or refuse a dialect code), so we restart it until time runs out.
@@ -119,6 +119,7 @@
       const endAt = performance.now() + ms;
       const finish = () => { if (ended) return; ended = true; clearInterval(iv); clearTimeout(to); try { rec && rec.stop(); } catch (e) {}
         if (!ready && !err) err = "ended-early"; setTimeout(() => res({ alts, latency: sp != null ? sp : first, none: false, err, restarts }), 350); };
+      window.TiflanStopListening = finish;
       const mark = () => { if (!ready) { ready = true; t0 = performance.now(); if (onReady) onReady(); } };
       const go = () => {
         if (ended) return;
@@ -127,7 +128,7 @@
         rec.onspeechstart = () => { if (sp == null && t0 != null) sp = Math.round(performance.now() - t0); };
         rec.onresult = (e) => {
           if (first == null && t0 != null) first = Math.round(performance.now() - t0); last = performance.now();
-          const segs = [...e.results], joined = segs.map((r) => r[0].transcript).join(" "), lastR = segs[segs.length - 1]; alts = [joined];
+          const segs = [...e.results], joined = segs.map((r) => r[0].transcript).join(" "), lastR = segs[segs.length - 1]; alts = [joined]; if (onInterim) onInterim(joined);
           for (let k = 1; k < lastR.length; k++) alts.push(segs.slice(0, -1).map((r) => r[0].transcript).concat(lastR[k].transcript).join(" "));
         };
         rec.onerror = (e) => { err = e.error;
@@ -143,7 +144,7 @@
   }
   const errMsg = (e) => T(e === "not-allowed" || e === "service-not-allowed" || e === "denied" ? "e_denied" : e === "network" ? "e_net" : e === "audio-capture" ? "e_cap" : e === "unsupported" ? "e_unsup" : e === "language-not-supported" ? "e_lang" : "e_silent");
   async function micHelp(c, err) {
-    c.body.innerHTML = `<div class="gm-intro"><div class="big">🎤</div><p>${errMsg(err)}</p><div class="mrow"><button class="pill" id="mhR" type="button"><span>${T("retry")}</span></button><button class="ghost" id="mhS" type="button">${T("skipg")}</button></div></div>`;
+    c.body.innerHTML = `<div class="gm-intro"><div class="big">🎤</div><p>${errMsg(err)}</p><p class="micnote">${T("e_desk")}</p><div class="mrow"><button class="pill" id="mhR" type="button"><span>${T("retry")}</span></button><button class="ghost" id="mhS" type="button">${T("skipg")}</button></div></div>`;
     return new Promise((r) => { $("#mhR").onclick = () => r("retry"); $("#mhS").onclick = () => r("skip"); });
   }
   const lev = (a, b) => { const d = Array.from({ length: a.length + 1 }, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j;
@@ -502,5 +503,6 @@
   };
   if ($("#gmClose")) $("#gmClose").onclick = close;
   addEventListener("keydown", (e) => { if (e.key === "Escape" && $("#game") && !$("#game").hidden) close(); });
+  window.TiflanListen = listen; window.TiflanMicMsg = errMsg; window.TiflanMicReset = () => { micOK = true; };
   window.TiflanGamesTest = { game6, TRA, game2, bothOn, savedVoice, translit, game3, speak, listen, listen, speak, game3, game4, pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
 })();

@@ -135,18 +135,18 @@
     ans = {}; idx = 0; busy = false; agent(GREET[L()]); setTimeout(nextQ, 400);
   }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  function listen() {
-    if (!SR) return bubble(T("in_nomic"), "sys");
-    if (listening) return rec.stop();
+  async function listen() {
+    if (!SR || !window.TiflanListen) return bubble(T("in_nomic"), "sys");
+    if (listening) { if (window.TiflanStopListening) window.TiflanStopListening(); return; }
+    if (window.TiflanMicReset) window.TiflanMicReset();
     if (window.speechSynthesis) speechSynthesis.cancel();
-    rec = new SR(); rec.lang = sttLang(); rec.interimResults = true;
-    rec.onstart = () => { listening = true; $("#mic").classList.add("on"); setStatus("in_listen"); };
-    rec.onresult = (e) => { let t = ""; for (const r of e.results) t += r[0].transcript; $("#inText").value = t; if (e.results[e.results.length - 1].isFinal) submit(t); };
-    rec.onerror = (e) => { if (e.error === "not-allowed" || e.error === "service-not-allowed") bubble(T("in_deny"), "sys"); };
-    rec.onend = () => { listening = false; $("#mic").classList.remove("on"); setStatus("in_idle"); };
-    rec.start();
+    listening = true; $("#mic").classList.add("on"); setStatus("in_listen");
+    const res = await window.TiflanListen(L() === "en" ? "en" : "ar", 14000, null, 1500, (x) => { $("#inText").value = x; });
+    listening = false; $("#mic").classList.remove("on"); setStatus("in_idle");
+    if (res.alts && res.alts.length) { $("#inText").value = res.alts[0]; submit(res.alts[0]); }
+    else bubble((window.TiflanMicMsg ? window.TiflanMicMsg(res.err || "silent") : T("in_deny")), "sys");
   }
-  const close = () => { $("#intake").hidden = true; document.body.style.overflow = ""; if (window.speechSynthesis) speechSynthesis.cancel(); if (rec && listening) rec.stop(); };
+  const close = () => { $("#intake").hidden = true; document.body.style.overflow = ""; if (window.speechSynthesis) speechSynthesis.cancel(); if (listening && window.TiflanStopListening) window.TiflanStopListening(); };
   $("#mic").onclick = listen;
   $("#send").onclick = () => submit($("#inText").value);
   $("#inText").onkeydown = (e) => { if (e.key === "Enter") submit($("#inText").value); };
