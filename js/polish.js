@@ -99,5 +99,5 @@
   addEventListener("keydown", (e) => { if (e.key === "Escape") closeAll(); });
   document.addEventListener("tiflan:lang", () => { if (!$("#agentsSheet").hidden) renderAgents(); if (!$("#privSheet").hidden) renderPriv(); if ($("#demoBar")) showBar(); });
   if (/[?&]demo=1/.test(location.search)) setTimeout(startDemo, 300);
-  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(() => {});
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) { const had = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener("controllerchange", () => { if (had && !window.__swReloaded) { window.__swReloaded = true; location.reload(); } }); navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {}); }
 })();
