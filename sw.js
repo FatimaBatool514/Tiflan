@@ -1,5 +1,5 @@
 // Tiflan service worker: app works offline after the first visit. Network-first so updates always arrive when online.
-const V = "tiflan-v19", SHELL = ["./", "index.html", "css/style.css", "data/centers.js","js/app.js","js/config.js","js/games.js","js/i18n-onboard.js","js/i18n.js","js/intake.js","js/onboarding.js","js/polish.js","js/risk.js","js/support.js", "manifest.webmanifest", "icons/icon-192.png"];
+const V = "tiflan-v20", SHELL = ["./", "index.html", "css/style.css", "js/app.js", "js/config.js", "js/games.js", "js/i18n-onboard.js", "js/i18n.js", "js/intake.js", "js/onboarding.js", "js/polish.js", "js/risk.js", "js/support.js", "data/centers.js", "assets/boy-down.webp", "assets/boy-face.webp", "assets/boy-left.webp", "assets/boy-right.webp", "assets/boy-up.webp", "assets/girl-down.webp", "assets/girl-face.webp", "assets/girl-left.webp", "assets/girl-right.webp", "assets/girl-up.webp", "manifest.webmanifest", "icons/icon-192.png"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(V).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", (e) => { e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((x) => x !== V).map((x) => caches.delete(x)))).then(() => self.clients.claim())); });
 self.addEventListener("fetch", (e) => {

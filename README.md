@@ -38,3 +38,5 @@ All text is in js/i18n.js. The brand name is in index.html (class brand-en / bra
 vercel.json (included) only adds safe headers and stops the service worker from being cached.
 
 Microphone problems? Open /mic-test.html on the same address and run the three tests. It shows the exact error.
+
+- Mascots: two 3D babies (assets/*.webp, 4 poses each) look at the pointer. The parent picks the child's gender in the profile step and only that baby is used in the games and chat.

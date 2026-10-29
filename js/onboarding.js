@@ -16,12 +16,13 @@
   let saved = store.get(), draft = saved || fresh();
   window.Tiflan = { profile: () => saved, plan: () => (saved && saved.child.age <= 5 ? 4 : 6),
     update: (fn) => { if (saved) { fn(saved); store.set(saved); } },
+    mascot: () => (saved && saved.child.gender === "boy" ? "boy" : "girl"),
     loadDemo: (p) => { demo = true; saved = p; draft = p; }, isDemo: () => demo,
     wipe: () => { store.clear(); saved = null; draft = fresh(); },
     log: (a, m) => { (window.Tiflan._log = window.Tiflan._log || []).push({ t: Date.now(), agent: a, msg: m }); } };
 
   const valid = () => step === 0 ? draft.consent.play && draft.consent.mic
-    : step === 1 ? !!draft.child.age : step === 2 ? !!draft.child.homeLang : true;
+    : step === 1 ? !!draft.child.age : step === 2 ? !!draft.child.homeLang && !!draft.child.gender : true;
 
   function summary() {
     const a = draft.child.age, n = a <= 5 ? 4 : 6, m = a <= 5 ? "4" : "6-7";
@@ -53,7 +54,7 @@
   $("#cMic").onchange = (e) => { draft.consent.mic = e.target.checked; render(); };
   $("#cCam").onchange = (e) => { draft.consent.camera = e.target.checked; };
   $$("[data-age]").forEach((b) => (b.onclick = () => { draft.child.age = +b.dataset.age; render(); }));
-  $$("[data-gender]").forEach((b) => (b.onclick = () => { draft.child.gender = draft.child.gender === b.dataset.gender ? null : b.dataset.gender; render(); }));
+  $$("[data-gender]").forEach((b) => (b.onclick = () => { draft.child.gender = b.dataset.gender; render(); }));
   $$("[data-dialect]").forEach((b) => (b.onclick = () => { draft.child.dialect = b.dataset.dialect; render(); }));
   $$("[data-hl]").forEach((b) => (b.onclick = () => { draft.child.homeLang = b.dataset.hl; render(); }));
   $("#back").onclick = () => { step = Math.max(0, step - 1); render(); };

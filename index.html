@@ -23,7 +23,7 @@
 
   <header class="nav">
     <a class="brand" href="#" aria-label="Tiflan طفلان">
-      <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#F2C6A0"/><clipPath id="hcL"><circle cx="16" cy="16" r="15"/></clipPath><path d="M0 0H32V14Q16 6 0 14Z" fill="#4a2e1c" clip-path="url(#hcL)"/><circle cx="11.500" cy="17.500" r="2.300" fill="#2B1B5E"/><circle cx="20.500" cy="17.500" r="2.300" fill="#2B1B5E"/><path d="M12.500 22.500c2 2 5 2 7 0" stroke="#B5584A" stroke-width="1.500" fill="none" stroke-linecap="round"/></svg>
+      <span class="logo2" aria-hidden="true"><img src="assets/boy-face.webp" alt=""><img src="assets/girl-face.webp" alt=""></span>
       <span class="brand-en">Tiflan</span><span class="brand-ar">طفلان</span>
     </a>
     <nav class="links">
@@ -48,30 +48,11 @@
     <div class="mini"><button class="ghost" type="button" data-open="demo">▶ <span data-i18n="m_demo"></span></button><button class="ghost" type="button" data-open="agents">🧩 <span data-i18n="m_agents"></span></button><button class="ghost" type="button" data-open="privacy">🛡️ <span data-i18n="m_priv"></span></button></div>
   </section>
 
-  <section class="falcon-wrap" aria-label="Baby mascot">
-    <div class="shadow"></div>
-    <svg id="falcon" viewBox="0 0 400 470" role="img" aria-label="Baby mascot">
-      <g id="bob">
-        <ellipse cx="150" cy="442" rx="34" ry="18" fill="#EBB98F"/><ellipse cx="250" cy="442" rx="34" ry="18" fill="#EBB98F"/>
-        <path d="M105 335c0-58 45-85 95-85s95 27 95 85v66c0 32-30 46-95 46s-95-14-95-46z" fill="#4FD1A5"/>
-        <ellipse cx="96" cy="350" rx="24" ry="48" fill="#4FD1A5" transform="rotate(18 96 350)"/><ellipse cx="304" cy="350" rx="24" ry="48" fill="#4FD1A5" transform="rotate(-18 304 350)"/>
-        <circle cx="82" cy="396" r="21" fill="#EBB98F"/><circle cx="318" cy="396" r="21" fill="#EBB98F"/>
-        <path d="M200 322l9 19 21 3-15 15 4 21-19-10-19 10 4-21-15-15 21-3z" fill="#FFC94D"/>
-        <g id="head">
-          <circle cx="86" cy="205" r="24" fill="#EBB98F"/><circle cx="314" cy="205" r="24" fill="#EBB98F"/>
-          <circle cx="86" cy="205" r="11" fill="#D9A27A"/><circle cx="314" cy="205" r="11" fill="#D9A27A"/>
-          <circle cx="200" cy="190" r="118" fill="#F2C6A0"/>
-          <clipPath id="hcH"><circle cx="200" cy="190" r="118"/></clipPath><path d="M60 40H340V152Q200 62 60 152Z" fill="#4a2e1c" clip-path="url(#hcH)"/>
-          <path d="M172 84c-2-26 26-40 44-22 14 14 2 34-16 30 10-12 2-24-12-20-8 3-10 10-8 18z" fill="#4a2e1c"/>
-          <circle cx="126" cy="236" r="20" fill="#F29C8A" opacity=".55"/><circle cx="274" cy="236" r="20" fill="#F29C8A" opacity=".55"/>
-          <path d="M126 152c10-8 24-8 36-2M238 150c12-6 26-6 36 2" stroke="#4a2e1c" stroke-width="5" fill="none" stroke-linecap="round"/>
-          <g class="eye" id="eyeL"><ellipse cx="150" cy="190" rx="31" ry="34" fill="#fff"/><g class="pupil"><circle cx="150" cy="192" r="19" fill="#4a2e1c"/><circle cx="150" cy="192" r="10" fill="#1a0f0a"/><circle cx="143" cy="184" r="6" fill="#fff"/></g></g>
-          <g class="eye" id="eyeR"><ellipse cx="250" cy="190" rx="31" ry="34" fill="#fff"/><g class="pupil"><circle cx="250" cy="192" r="19" fill="#4a2e1c"/><circle cx="250" cy="192" r="10" fill="#1a0f0a"/><circle cx="243" cy="184" r="6" fill="#fff"/></g></g>
-          <ellipse cx="200" cy="236" rx="9" ry="7" fill="#E3A57C"/>
-          <path d="M170 264c14 18 46 18 60 0" stroke="#B5584A" stroke-width="6" fill="none" stroke-linecap="round"/>
-        </g>
-      </g>
-    </svg>
+  <section class="falcon-wrap" aria-label="Baby mascots">
+    <div id="babies" class="babies">
+      <div class="baby" data-g="boy"><div class="wrap"><img data-d="down" src="assets/boy-down.webp" alt="Boy mascot" decoding="async" draggable="false"><img data-d="up" src="assets/boy-up.webp" alt="" decoding="async" draggable="false"><img data-d="left" src="assets/boy-left.webp" alt="" decoding="async" draggable="false"><img data-d="right" src="assets/boy-right.webp" alt="" decoding="async" draggable="false"></div></div>
+      <div class="baby" data-g="girl"><div class="wrap"><img data-d="down" src="assets/girl-down.webp" alt="Girl mascot" decoding="async" draggable="false"><img data-d="up" src="assets/girl-up.webp" alt="" decoding="async" draggable="false"><img data-d="left" src="assets/girl-left.webp" alt="" decoding="async" draggable="false"><img data-d="right" src="assets/girl-right.webp" alt="" decoding="async" draggable="false"></div></div>
+    </div>
   </section>
 
   <aside class="card live" aria-live="polite">
@@ -117,12 +98,12 @@
 
     <div class="pane" data-pane="2" hidden>
       <h2 data-i18n="g_title"></h2>
+      <h3 data-i18n="gender_q"></h3>
+      <div class="chips"><button type="button" class="chip gchip" data-gender="girl"><img src="assets/girl-face.webp" alt=""><span data-i18n="g_girl"></span></button><button type="button" class="chip gchip" data-gender="boy"><img src="assets/boy-face.webp" alt=""><span data-i18n="g_boy"></span></button></div>
       <h3 data-i18n="hl_q"></h3>
       <div class="chips"><button type="button" class="chip" data-hl="ar" data-i18n="hl_ar"></button><button type="button" class="chip" data-hl="en" data-i18n="hl_en"></button><button type="button" class="chip" data-hl="both" data-i18n="hl_both"></button></div>
       <h3 data-i18n="dialect_q"></h3>
       <div class="chips"><button type="button" class="chip" data-dialect="gulf" data-i18n="d_gulf"></button><button type="button" class="chip" data-dialect="egy" data-i18n="d_egy"></button><button type="button" class="chip" data-dialect="lev" data-i18n="d_lev"></button><button type="button" class="chip" data-dialect="mag" data-i18n="d_mag"></button><button type="button" class="chip" data-dialect="msa" data-i18n="d_msa"></button><button type="button" class="chip" data-dialect="en" data-i18n="d_en"></button></div>
-      <h3 data-i18n="gender_q"></h3>
-      <div class="chips"><button type="button" class="chip" data-gender="girl" data-i18n="g_girl"></button><button type="button" class="chip" data-gender="boy" data-i18n="g_boy"></button></div>
     </div>
 
     <div class="pane" data-pane="3" hidden>
@@ -141,7 +122,7 @@
   <div class="sheet-card wide">
     <button class="x" id="inClose" type="button" aria-label="Close">✕</button>
     <div class="agent-head">
-      <svg class="avatar" id="avatar" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="38" fill="#F2C6A0"/><clipPath id="hcA"><circle cx="40" cy="40" r="38"/></clipPath><path d="M0 0H80V32Q40 14 0 32Z" fill="#4a2e1c" clip-path="url(#hcA)"/><circle cx="27" cy="42" r="6" fill="#fff"/><circle cx="53" cy="42" r="6" fill="#fff"/><circle cx="27" cy="43" r="3.500" fill="#4a2e1c"/><circle cx="53" cy="43" r="3.500" fill="#4a2e1c"/><path d="M30 57c6 7 14 7 20 0" stroke="#B5584A" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+      <img class="avatar" id="avatar" alt="" src="assets/girl-face.webp">
       <div class="ah"><b data-i18n="in_agent"></b><small id="inStatus"></small></div>
       <button class="tog" id="vToggle" type="button" aria-label="Voice">🔊</button>
     </div>

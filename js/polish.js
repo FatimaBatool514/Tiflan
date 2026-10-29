@@ -24,7 +24,7 @@
     const pick = { words:"late", family:"yes", senses:"no", letters:"some", clarity:"partly", attention:"some", other:"none" }, answers = {}; let flags = 0;
     Q.forEach((q) => { const o = q.opts.find((x) => x.v === pick[q.id]); if (o) { answers[q.id] = { v: o.v, f: o.f, label: o[l], note: "" }; flags += o.f; } });
     const g = (m) => ({ ts: now, age: 7, metrics: m, trials: [] });
-    return { sid: "demo0000-sample-child", createdAt: now, demo: true, consent: { play: true, mic: true, camera: false, ts: now }, child: { age: 7, gender: null, dialect: "gulf", homeLang: "ar" },
+    return { sid: "demo0000-sample-child", createdAt: now, demo: true, consent: { play: true, mic: true, camera: false, ts: now }, child: { age: 7, gender: "girl", dialect: "gulf", homeLang: "ar" },
       intake: { answers, flags, done: now },
       games: { g1: g({ n:12, correct:11, omissions:0, premature:1, medianRT:980, rtCV:0.28 }), g2: g({ n:8, correct:5, omissions:0, replays:2, medianRT:2400 }),
         g3: g({ n:8, scored:8, correct:4, omissions:0, medianLatency:900, byLen:{ 2:{c:2,n:2}, 3:{c:2,n:3}, 4:{c:0,n:3} } }),

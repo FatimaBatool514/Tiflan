@@ -125,7 +125,7 @@
   }
   function start(fresh) {
     const p = window.Tiflan.profile();
-    $("#intake").hidden = false; document.body.style.overflow = "hidden";
+    $("#avatar").src = "assets/" + window.Tiflan.mascot() + "-face.webp"; $("#intake").hidden = false; document.body.style.overflow = "hidden";
     $("#aiBadge").textContent = cfg() ? T("in_ai_on") : T("in_ai_off");
     $("#inProg").innerHTML = Q.map(() => "<i></i>").join("");
     $("#chat").innerHTML = ""; $("#inFin").hidden = true; $("#qChips").hidden = $("#inRow").hidden = false;

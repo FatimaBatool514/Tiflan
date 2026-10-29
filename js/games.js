@@ -189,29 +189,28 @@
   /* ---------- Game 1 ---------- */
   const OBJ1 = ["⭐","🎈","🍎","🐟","🦋","🌸","🍊","🚗","🐥","🍓","🧸","🪁"];
   async function game1(c) {
-    const [N, K] = G1[A(c.age)];
-    c.body.innerHTML = `<div class="arena" id="ar">${FACE}</div>`;
-    const ar = $("#ar"), pup = [...ar.querySelectorAll(".pup")], hd = ar.querySelector(".hd");
-    const gaze = (dx, dy) => { pup.forEach((p) => (p.style.transform = `translate(${dx * 9}px,${dy * 7}px)`)); hd.style.transform = `translate(${dx * 6}px,${dy * 4}px) rotate(${dx * 7}deg)`; };
-    const trials = []; let premature = 0, armed = false, resolve = null;
+    const [N, K] = G1[A(c.age)], gd = window.Tiflan.mascot();
+    c.body.innerHTML = `<div class="arena" id="ar">${faceHTML(gd)}</div>`;
+    const ar = $("#ar"), fl = ar.querySelector(".fl"), imgs = Object.fromEntries([...fl.querySelectorAll("img")].map((i) => [i.dataset.d, i]));
+    const trials = []; let premature = 0, armed = false, waiting = false, resolve = null;
+    ar.onpointerdown = () => { if (waiting) premature++; };               // tapping before the baby appears = too early
+    const pose = (d) => { Object.values(imgs).forEach((i) => i.classList.remove("on")); if (d) imgs[d].classList.add("on"); };
     for (let t = 0; t < N; t++) {
       c.prog(t, N); c.check();
-      const W = ar.clientWidth, H = ar.clientHeight, rx = W * 0.36, ry = H * 0.36, target = rand(K), faces = shuffle(OBJ1).slice(0, K);
-      const stars = shuffle([0, 1, 2, 3, 4, 5, 6, 7]).slice(0, K).map((s, k) => {
-        const a = (s * Math.PI) / 4, b = document.createElement("button");
-        b.className = "st c" + k; b.textContent = faces[k]; b.setAttribute("aria-label", "item");
-        b.style.left = W / 2 + rx * Math.cos(a) - 38 + "px"; b.style.top = H / 2 + ry * Math.sin(a) - 38 + "px";
-        b.onclick = () => { if (!armed) premature++; else if (resolve) resolve(k); };
-        ar.appendChild(b); return { b, a };
-      });
-      gaze(0, 0); await wait(700 + rand(900)); c.check();
-      gaze(Math.cos(stars[target].a), Math.sin(stars[target].a)); armed = true; const onset = performance.now();
+      const W = ar.clientWidth, H = ar.clientHeight, rx = Math.min(W * 0.36, W / 2 - 46), ry = Math.min(H * 0.38, H / 2 - 46);
+      const dirs = shuffle(["up", "down", "left", "right"]).slice(0, K), target = rand(K), faces = shuffle(OBJ1).slice(0, K);
+      const spot = { up: [0, -ry], down: [0, ry], left: [-rx, 0], right: [rx, 0] };
+      waiting = true; fl.classList.remove("show"); await wait(700 + rand(900)); c.check(); waiting = false;
+      // reveal: the baby peeks in looking at one object, and the objects appear at the same moment
+      const stars = dirs.map((d, k) => { const b = document.createElement("button"); b.className = "st c" + k; b.textContent = faces[k]; b.setAttribute("aria-label", "item");
+        b.style.left = W / 2 + spot[d][0] - 38 + "px"; b.style.top = H / 2 + spot[d][1] - 38 + "px"; b.onclick = () => { if (armed && resolve) resolve(k); }; ar.appendChild(b); return { b, d }; });
+      pose(dirs[target]); fl.classList.add("show"); armed = true; const onset = performance.now();
       const k = await new Promise((r) => { resolve = r; setTimeout(() => r(-1), 6000); });
       const rt = performance.now() - onset; armed = false; resolve = null;
       trials.push({ t, target, chosen: k, correct: k === target, omitted: k < 0, rt: k < 0 ? null : Math.round(rt) });
       stars[target].b.classList.add(k === target ? "ok" : "hint"); if (k >= 0 && k !== target) stars[k].b.classList.add("no");
-      if (k === target) { ar.classList.add("cheer"); setTimeout(() => ar.classList.remove("cheer"), 500); }
-      await wait(850); stars.forEach((s) => s.b.remove());
+      if (k === target) { fl.classList.add("cheer"); setTimeout(() => fl.classList.remove("cheer"), 550); }
+      await wait(900); stars.forEach((s) => s.b.remove());
     }
     c.prog(N, N);
     const good = trials.filter((x) => x.correct).map((x) => x.rt), m = med(good), s = sd(good);
@@ -444,11 +443,7 @@
   }
 
   /* ---------- engine ---------- */
-  const FACE = `<svg class="fl" viewBox="0 0 200 200" aria-hidden="true"><g class="hd"><circle cx="30" cy="106" r="14" fill="#EBB98F"/><circle cx="170" cy="106" r="14" fill="#EBB98F"/><circle cx="100" cy="100" r="82" fill="#F2C6A0"/>
-    <clipPath id="hcG"><circle cx="100" cy="100" r="82"/></clipPath><path d="M10 10H190V84Q100 28 10 84Z" fill="#4a2e1c" clip-path="url(#hcG)"/><path d="M92 38c-2-14 16-22 26-12 8 8 0 20-10 18 6-8 0-14-8-12z" fill="#4a2e1c"/>
-    <circle cx="52" cy="128" r="12" fill="#F29C8A" opacity=".55"/><circle cx="148" cy="128" r="12" fill="#F29C8A" opacity=".55"/><circle cx="72" cy="94" r="22" fill="#fff"/><circle cx="128" cy="94" r="22" fill="#fff"/>
-    <g class="pup"><circle cx="72" cy="95" r="12" fill="#4a2e1c"/><circle cx="72" cy="95" r="6" fill="#1a0f0a"/><circle cx="68" cy="90" r="4" fill="#fff"/></g><g class="pup"><circle cx="128" cy="95" r="12" fill="#4a2e1c"/><circle cx="128" cy="95" r="6" fill="#1a0f0a"/><circle cx="124" cy="90" r="4" fill="#fff"/></g>
-    <ellipse cx="100" cy="122" rx="6" ry="5" fill="#E3A57C"/><path d="M80 140c10 12 30 12 40 0" stroke="#B5584A" stroke-width="5" fill="none" stroke-linecap="round"/></g></svg>`;
+  const faceHTML = (gd) => `<div class="fl" data-g="${gd}">${["up", "down", "left", "right"].map((d) => `<img data-d="${d}" src="assets/${gd}-${d}.webp" alt="" draggable="false">`).join("")}</div>`;
   const GAMES = [{ id:"g1", icon:"⭐", t:"t1", i:"i1", run:game1, line:"s1" }, { id:"g2", icon:"🐣", t:"t2", i:"i2", run:game2, line:"s2", lang:1 },
     { id:"g3", icon:"🦜", t:"t3", i:"i3", note:"n3", run:game3, line:"s3", lang:1 }, { id:"g4", icon:"🏁", t:"t4", i:"i4", note:"n4", run:game4, line:"s4", lang:1 },
     { id:"g5", icon:"🔤", t:"t5", i:"i5", run:game5, line:"s5", lang:1 }, { id:"g6", icon:"🔎", t:"t6", i:"i6", ex:1, run:game6, line:"s6", lang:1 }];
@@ -504,5 +499,5 @@
   if ($("#gmClose")) $("#gmClose").onclick = close;
   addEventListener("keydown", (e) => { if (e.key === "Escape" && $("#game") && !$("#game").hidden) close(); });
   window.TiflanListen = listen; window.TiflanMicMsg = errMsg; window.TiflanMicReset = () => { micOK = true; };
-  window.TiflanGamesTest = { game6, TRA, game2, bothOn, savedVoice, translit, game3, speak, listen, listen, speak, game3, game4, pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
+  window.TiflanGamesTest = { game1, game6, TRA, game2, bothOn, savedVoice, translit, game3, speak, listen, listen, speak, game3, game4, pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
 })();
