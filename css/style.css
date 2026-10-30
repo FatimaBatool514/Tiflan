@@ -330,3 +330,15 @@ html[dir=rtl] .mk{translate:50% 0}
 /* brand logo */
 .brand .logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
 @media(max-width:560px){.brand .logo{width:38px;height:38px}}
+
+/* smooth head turns: opacity is driven every frame by JS, so no CSS transition (it would fight the blend) */
+.baby img{transition:none;will-change:opacity}
+.baby .wrap{transition:none;will-change:transform}
+
+/* ===== calm, steady babies ===== */
+.baby img{transition:none}
+.baby{animation:breathe 5s ease-in-out infinite}
+.baby[data-g=girl]{animation-delay:-2.2s}
+.baby.cheer{animation:cheer .65s}
+@keyframes breathe{50%{transform:scale(1.008)}}
+.babies[data-mood=s] .baby{filter:none}
