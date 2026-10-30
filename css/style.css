@@ -342,3 +342,8 @@ html[dir=rtl] .mk{translate:50% 0}
 .baby.cheer{animation:cheer .65s}
 @keyframes breathe{50%{transform:scale(1.008)}}
 .babies[data-mood=s] .baby{filter:none}
+
+/* tap a picture to hear it, tap again (or the check mark) to choose */
+.opt.picked{border-color:var(--gold);background:rgba(255,201,77,.22);transform:scale(1.04)}
+.cfrow{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:10px;text-align:center}
+.pill.cf{min-height:56px;background:linear-gradient(180deg,#8ae9c8,var(--mint));box-shadow:0 8px 24px rgba(79,209,165,.35)}.pill.cf[hidden]{display:none}

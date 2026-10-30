@@ -35,8 +35,8 @@
     e_denied:"Microphone access is blocked. Allow it in the browser settings (lock icon next to the address), then try again.", e_net:"Speech recognition needs an internet connection. Please check it and try again.",
     e_cap:"The microphone is busy or missing. Close other apps that use it.", e_unsup:"This browser does not support speech recognition. Please use Chrome on Android or desktop.",
     e_lang:"This language is not supported for speech recognition on this device.", e_silent:"We didn't receive any sound. Check that the microphone works, the room is quiet, and ask your child to speak louder and closer to the device." });
-  Object.assign(S.ar, { e_desk:"على اللابتوب: اسمحي للمتصفح بالميكروفون في إعدادات خصوصية النظام، واختاري الميكروفون الصحيح من أيقونة القفل ثم الميكروفون، واستخدمي Chrome أو Edge. افتحي صفحة mic-test.html لمعرفة السبب بالضبط.", vs:"إعدادات الصوت", vs_def:"الافتراضي (موصى به)", vs_none:"لا توجد أصوات متاحة على هذا الجهاز.", vs_tip:"اختاري صوتاً هادئاً وناعماً إن وُجد. ارفعي صوت الوسائط في الجهاز إن كان خافتاً.", vs_both:"انطق الكلمة الغريبة أيضاً بالحروف اللاتينية (مثل batoofa)" });
-  Object.assign(S.en, { e_desk:"On a laptop: allow the browser to use the microphone in your system privacy settings, pick the right microphone via the lock icon then Microphone, and use Chrome or Edge. Open mic-test.html to see the exact cause.", vs:"Voice settings", vs_def:"Default (recommended)", vs_none:"No voices available on this device.", vs_tip:"Pick a calm, soft voice if one is available. Raise the media volume on the device if it is quiet.", vs_both:"Also say the made-up word from its Latin spelling (like batoofa)" });
+  Object.assign(S.ar, { choose:"اختر هذه", taphear:"اضغط على الصورة لتسمع اسمها، ثم اضغط ✔ لتختارها", e_desk:"على اللابتوب: اسمحي للمتصفح بالميكروفون في إعدادات خصوصية النظام، واختاري الميكروفون الصحيح من أيقونة القفل ثم الميكروفون، واستخدمي Chrome أو Edge. افتحي صفحة mic-test.html لمعرفة السبب بالضبط.", vs:"إعدادات الصوت", vs_def:"الافتراضي (موصى به)", vs_none:"لا توجد أصوات متاحة على هذا الجهاز.", vs_tip:"اختاري صوتاً هادئاً وناعماً إن وُجد. ارفعي صوت الوسائط في الجهاز إن كان خافتاً.", vs_both:"انطق الكلمة الغريبة أيضاً بالحروف اللاتينية (مثل batoofa)" });
+  Object.assign(S.en, { choose:"Choose this", taphear:"Tap a picture to hear its name, then tap ✔ to choose it", e_desk:"On a laptop: allow the browser to use the microphone in your system privacy settings, pick the right microphone via the lock icon then Microphone, and use Chrome or Edge. Open mic-test.html to see the exact cause.", vs:"Voice settings", vs_def:"Default (recommended)", vs_none:"No voices available on this device.", vs_tip:"Pick a calm, soft voice if one is available. Raise the media volume on the device if it is quiet.", vs_both:"Also say the made-up word from its Latin spelling (like batoofa)" });
   const T = (k) => S[L()][k];
   const STT = { gulf:"ar-AE", egy:"ar-EG", lev:"ar-JO", mag:"ar-MA", msa:"ar-SA", en:"en-US" };
 
@@ -244,20 +244,40 @@
     const dis = shuffle(DIS[l].filter((d) => d[0] !== w && d[0] !== ans[0] && ek(d[0]) !== ek(w) && ek(d[0]) !== ek(ans[0]))).slice(0, K);
     return { w, we, wtr: l === "ar" ? TRA[w] || "" : "", opts: shuffle([{ t: ans[0], e: ans[1], ok: true, tr: l === "ar" ? TRA[ans[0]] || "" : "" }].concat(dis.map((d) => ({ t: d[0], e: d[1], ok: false, tr: l === "ar" ? TRA[d[0]] || "" : "" })))) };
   }
+  // Child-friendly choosing (children cannot read the words): tap a picture to HEAR its name (Arabic, then its Latin spelling),
+  // then tap it again or press the green check to choose it.
+  function makeChooser(ch, opts, l, cf) {
+    const st = { picked: -1, taps: 0, firstAt: null, on: false, resolve: null, lastTap: 0 };
+    const mark = (i) => { [...ch.children].forEach((b, k) => b.classList.toggle("picked", k === i)); cf.hidden = i < 0; };
+    opts.forEach((o, i) => {
+      const b = document.createElement("button"); b.className = "opt"; b.type = "button";
+      b.innerHTML = `<span>${o.e}</span><small dir="auto">${o.t}</small>${o.tr ? `<small class="tl2" dir="ltr">${esc(o.tr)}</small>` : ""}`;
+      b.onclick = () => {
+        if (!st.on || !st.resolve) return; const now = performance.now(); if (st.firstAt == null) st.firstAt = now;
+        if (st.picked === i) { if (now - st.lastTap > 700) st.resolve(i); return; }     // second tap on the same picture chooses it (an accidental double-tap is ignored)
+        st.picked = i; st.taps++; st.lastTap = now; mark(i); speak(o.t, l, o.tr || null);
+      };
+      ch.appendChild(b);
+    });
+    cf.onclick = () => { if (st.on && st.resolve && st.picked >= 0) st.resolve(st.picked); };
+    st.wait = (ms) => new Promise((r) => { st.resolve = r; setTimeout(() => r(-1), ms); });
+    return st;
+  }
+  const CHOICE_UI = (T) => `<div class="cfrow" id="cfrow" style="visibility:hidden"><button class="pill cf" id="cf" type="button" hidden><span>✔ ${T("choose")}</span></button><small class="micnote">${T("taphear")}</small></div>`;
+
   async function game2(c) {
     const age = A(c.age), N = G2[age][0], items = gather(N, (l, k) => pickFresh("rh-" + l, RH[l].filter((x) => WIN[age].includes(x[3])), k)), trials = []; let replays = 0;
     for (let t = 0; t < items.length; t++) {
       c.prog(t, items.length); c.check(); const { l, it } = items[t], { w, we, wtr, opts } = rhymeTrial(age, l, it);
-      c.body.innerHTML = `<div class="rhyme"><div class="word"><span class="em">${we}</span><b dir="auto">${w}</b>${wtr ? `<div class="tlit">${esc(wtr)}</div>` : ""}<button class="chip" id="rp" type="button">🔊 ${T("replay")}</button><p class="micnote" id="vinfo" dir="ltr"></p></div><div class="choices" id="ch" style="visibility:hidden"></div></div>`;
-      const ch = $("#ch"); let resolve = null, shown = false;
-      opts.forEach((o, i) => { const b = document.createElement("button"); b.className = "opt"; b.type = "button"; b.innerHTML = `<span>${o.e}</span><small dir="auto">${o.t}</small>${o.tr ? `<small class="tl2" dir="ltr">${esc(o.tr)}</small>` : ""}`; b.onclick = () => shown && resolve && resolve(i); ch.appendChild(b); });
+      c.body.innerHTML = `<div class="rhyme"><div class="word"><span class="em">${we}</span><b dir="auto">${w}</b>${wtr ? `<div class="tlit">${esc(wtr)}</div>` : ""}<button class="chip" id="rp" type="button">🔊 ${T("replay")}</button><p class="micnote" id="vinfo" dir="ltr"></p></div><div class="choices" id="ch" style="visibility:hidden"></div>${CHOICE_UI(T)}</div>`;
+      const ch = $("#ch"), chooser = makeChooser(ch, opts, l, $("#cf"));
       const say2 = () => speak(w, l, wtr || null).then((sp) => { const v = $("#vinfo"); if (v) v.textContent = "🔊 " + (sp.info || ""); return sp; });
-      $("#rp").onclick = () => { if (shown) replays++; say2(); };
-      await say2(); c.check(); ch.style.visibility = "visible"; shown = true; const onset = performance.now();
-      const k = await new Promise((r) => { resolve = r; setTimeout(() => r(-1), 12000); });
-      const rt = Math.round(performance.now() - onset); shown = false; c.check();
+      $("#rp").onclick = () => { if (chooser.on) replays++; say2(); };
+      await say2(); c.check(); ch.style.visibility = "visible"; $("#cfrow").style.visibility = "visible"; chooser.on = true; const onset = performance.now();
+      const k = await chooser.wait(25000);
+      const rt = Math.round(performance.now() - onset); chooser.on = false; c.check();
       const bs = ch.children; opts.forEach((o, i) => { if (o.ok) bs[i].classList.add(k === i ? "ok" : "hint"); else if (i === k) bs[i].classList.add("no"); });
-      trials.push({ t, lang: l, word: w, chosen: k < 0 ? null : opts[k].t, correct: k >= 0 && opts[k].ok, omitted: k < 0, rt: k < 0 ? null : rt });
+      trials.push({ t, lang: l, word: w, chosen: k < 0 ? null : opts[k].t, correct: k >= 0 && opts[k].ok, omitted: k < 0, rt: k < 0 ? null : rt, hears: chooser.taps, firstTap: chooser.firstAt == null ? null : Math.round(chooser.firstAt - onset) });
       await wait(1000);
     }
     c.prog(items.length, items.length);
@@ -428,15 +448,14 @@
     const age = A(c.age), N = G6[Math.max(6, age)][0], trials = [], items = gather(N, (l, k) => pickFresh("sd-" + l, Object.keys(ST[l]), k, (x) => x));
     for (let t = 0; t < items.length; t++) {
       c.prog(t, items.length); c.check(); const { l, it: key } = items[t], { target, ttr, opts } = soundTrial(age, l, key);
-      c.body.innerHTML = `<div class="rhyme"><div class="word"><span class="em">${target[1]}</span><b dir="auto">${target[0]}</b>${ttr ? `<div class="tlit">${esc(ttr)}</div>` : ""}<button class="chip" id="rp" type="button">🔊 ${T("replay")}</button><p class="micnote" id="vinfo" dir="ltr"></p></div><div class="choices" id="ch" style="visibility:hidden"></div></div>`;
-      const ch = $("#ch"); let resolve = null, shown = false;
-      opts.forEach((o, i) => { const b = document.createElement("button"); b.className = "opt"; b.type = "button"; b.innerHTML = `<span>${o.e}</span><small dir="auto">${o.t}</small>${o.tr ? `<small class="tl2" dir="ltr">${esc(o.tr)}</small>` : ""}`; b.onclick = () => shown && resolve && resolve(i); ch.appendChild(b); });
+      c.body.innerHTML = `<div class="rhyme"><div class="word"><span class="em">${target[1]}</span><b dir="auto">${target[0]}</b>${ttr ? `<div class="tlit">${esc(ttr)}</div>` : ""}<button class="chip" id="rp" type="button">🔊 ${T("replay")}</button><p class="micnote" id="vinfo" dir="ltr"></p></div><div class="choices" id="ch" style="visibility:hidden"></div>${CHOICE_UI(T)}</div>`;
+      const ch = $("#ch"), chooser = makeChooser(ch, opts, l, $("#cf"));
       const say6 = () => speak(target[0], l, ttr || null).then((sp) => { const v = $("#vinfo"); if (v) v.textContent = "🔊 " + (sp.info || ""); return sp; });
       $("#rp").onclick = () => say6();
-      await say6(); c.check(); ch.style.visibility = "visible"; shown = true; const onset = performance.now();
-      const k = await new Promise((r) => { resolve = r; setTimeout(() => r(-1), 12000); }), rt = Math.round(performance.now() - onset); shown = false; c.check();
+      await say6(); c.check(); ch.style.visibility = "visible"; $("#cfrow").style.visibility = "visible"; chooser.on = true; const onset = performance.now();
+      const k = await chooser.wait(25000), rt = Math.round(performance.now() - onset); chooser.on = false; c.check();
       const bs = ch.children; opts.forEach((o, i) => { if (o.ok) bs[i].classList.add(k === i ? "ok" : "hint"); else if (i === k) bs[i].classList.add("no"); });
-      trials.push({ t, lang: l, sound: key, word: target[0], chosen: k < 0 ? null : opts[k].t, correct: k >= 0 && opts[k].ok, omitted: k < 0, rt: k < 0 ? null : rt }); await wait(1000);
+      trials.push({ t, lang: l, sound: key, word: target[0], chosen: k < 0 ? null : opts[k].t, correct: k >= 0 && opts[k].ok, omitted: k < 0, rt: k < 0 ? null : rt, hears: chooser.taps }); await wait(1000);
     }
     c.prog(items.length, items.length);
     return { trials, metrics: { n: trials.length, correct: trials.filter((x) => x.correct).length, omissions: trials.filter((x) => x.omitted).length, medianRT: rnd(med(trials.filter((x) => x.correct).map((x) => x.rt))), choices: G6[Math.max(6, age)][1] } };

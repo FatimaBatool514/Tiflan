@@ -42,3 +42,4 @@ Microphone problems? Open /mic-test.html on the same address and run the three t
 - Mascots: two 3D babies (assets/*.webp, 4 poses each) look at the pointer. The parent picks the child's gender in the profile step and only that baby is used in the games and chat.
 
 - Babies: look only at the cursor (no random looking). Optional: add assets/boy-front.webp and assets/girl-front.webp to make them look straight when the cursor is still.
+- Games 2 and 6: tap a picture to hear its name (Arabic, then Latin spelling), tap again or press the check mark to choose.
