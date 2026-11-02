@@ -347,3 +347,11 @@ html[dir=rtl] .mk{translate:50% 0}
 .opt.picked{border-color:var(--gold);background:rgba(255,201,77,.22);transform:scale(1.04)}
 .cfrow{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:10px;text-align:center}
 .pill.cf{min-height:56px;background:linear-gradient(180deg,#8ae9c8,var(--mint));box-shadow:0 8px 24px rgba(79,209,165,.35)}.pill.cf[hidden]{display:none}
+
+/* AI agent trace (shown with the magnifier button or ?trace=1) */
+.bub.tool{display:none;align-self:center;background:rgba(91,192,235,.16);font:.76rem ui-monospace,monospace;direction:ltr;padding:6px 12px}
+body.show-trace .bub.tool{display:block}
+.agentsay{color:var(--gold);font-weight:600}
+.agtrace{display:none;font-size:.78rem;color:var(--aqua);direction:ltr}
+body.show-trace .agtrace{display:block}
+.tog{margin-inline-start:6px}

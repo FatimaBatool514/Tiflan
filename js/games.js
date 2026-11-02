@@ -35,8 +35,8 @@
     e_denied:"Microphone access is blocked. Allow it in the browser settings (lock icon next to the address), then try again.", e_net:"Speech recognition needs an internet connection. Please check it and try again.",
     e_cap:"The microphone is busy or missing. Close other apps that use it.", e_unsup:"This browser does not support speech recognition. Please use Chrome on Android or desktop.",
     e_lang:"This language is not supported for speech recognition on this device.", e_silent:"We didn't receive any sound. Check that the microphone works, the room is quiet, and ask your child to speak louder and closer to the device." });
-  Object.assign(S.ar, { choose:"اختر هذه", taphear:"اضغط على الصورة لتسمع اسمها، ثم اضغط ✔ لتختارها", e_desk:"على اللابتوب: اسمحي للمتصفح بالميكروفون في إعدادات خصوصية النظام، واختاري الميكروفون الصحيح من أيقونة القفل ثم الميكروفون، واستخدمي Chrome أو Edge. افتحي صفحة mic-test.html لمعرفة السبب بالضبط.", vs:"إعدادات الصوت", vs_def:"الافتراضي (موصى به)", vs_none:"لا توجد أصوات متاحة على هذا الجهاز.", vs_tip:"اختاري صوتاً هادئاً وناعماً إن وُجد. ارفعي صوت الوسائط في الجهاز إن كان خافتاً.", vs_both:"انطق الكلمة الغريبة أيضاً بالحروف اللاتينية (مثل batoofa)" });
-  Object.assign(S.en, { choose:"Choose this", taphear:"Tap a picture to hear its name, then tap ✔ to choose it", e_desk:"On a laptop: allow the browser to use the microphone in your system privacy settings, pick the right microphone via the lock icon then Microphone, and use Chrome or Edge. Open mic-test.html to see the exact cause.", vs:"Voice settings", vs_def:"Default (recommended)", vs_none:"No voices available on this device.", vs_tip:"Pick a calm, soft voice if one is available. Raise the media volume on the device if it is quiet.", vs_both:"Also say the made-up word from its Latin spelling (like batoofa)" });
+  Object.assign(S.ar, { thinking:"نختار أنسب لعبة لطفلك...", choose:"اختر هذه", taphear:"اضغط على الصورة لتسمع اسمها، ثم اضغط ✔ لتختارها", e_desk:"على اللابتوب: اسمحي للمتصفح بالميكروفون في إعدادات خصوصية النظام، واختاري الميكروفون الصحيح من أيقونة القفل ثم الميكروفون، واستخدمي Chrome أو Edge. افتحي صفحة mic-test.html لمعرفة السبب بالضبط.", vs:"إعدادات الصوت", vs_def:"الافتراضي (موصى به)", vs_none:"لا توجد أصوات متاحة على هذا الجهاز.", vs_tip:"اختاري صوتاً هادئاً وناعماً إن وُجد. ارفعي صوت الوسائط في الجهاز إن كان خافتاً.", vs_both:"انطق الكلمة الغريبة أيضاً بالحروف اللاتينية (مثل batoofa)" });
+  Object.assign(S.en, { thinking:"Choosing the best next game...", choose:"Choose this", taphear:"Tap a picture to hear its name, then tap ✔ to choose it", e_desk:"On a laptop: allow the browser to use the microphone in your system privacy settings, pick the right microphone via the lock icon then Microphone, and use Chrome or Edge. Open mic-test.html to see the exact cause.", vs:"Voice settings", vs_def:"Default (recommended)", vs_none:"No voices available on this device.", vs_tip:"Pick a calm, soft voice if one is available. Raise the media volume on the device if it is quiet.", vs_both:"Also say the made-up word from its Latin spelling (like batoofa)" });
   const T = (k) => S[L()][k];
   const STT = { gulf:"ar-AE", egy:"ar-EG", lev:"ar-JO", mag:"ar-MA", msa:"ar-SA", en:"en-US" };
 
@@ -476,13 +476,22 @@
     const vb = box.querySelector("#vsBoth"); if (vb) vb.onchange = () => { try { localStorage.setItem("tiflan-both", vb.checked ? "1" : "0"); } catch (e) {} };
     box.querySelectorAll("select").forEach((sel) => (sel.onchange = () => { saveVoice(sel.dataset.v, sel.value); speak(sel.dataset.v === "ar" ? "مرحباً، أنا طفلان" : "Hello, I am Tiflan", sel.dataset.v); }));
   }
-  async function play(i, results, my) {
-    const plan = window.Tiflan.plan(), g = GAMES.slice(0, plan)[i], p = prof(), age = p ? p.child.age : 6, body = $("#gmBody");
+  const sumLine = (id, m) => id + ": " + JSON.stringify(Object.fromEntries(["n", "correct", "scored", "errors", "omissions", "medianRT", "premature", "replays"].filter((k) => m[k] != null).map((k) => [k, m[k]])));
+  async function play(i, results, my, remaining) {
+    const plan = window.Tiflan.plan(), list = GAMES.slice(0, plan), p = prof(), realAge = p ? p.child.age : 6, body = $("#gmBody");
+    remaining = remaining || list.map((x) => x.id);
+    let pickId = remaining[0], shift = 0, say = "", why = "";
+    if (window.TiflanAgent && window.TiflanAgent.available()) {                                   // AI Orchestrator: next game + difficulty
+      body.innerHTML = `<div class="gm-intro"><div class="big">🧠</div><p>${T("thinking")}</p></div>`;
+      const d = await window.TiflanAgent.pickNext({ age: realAge, lang: L(), remaining, done: results.map((r) => sumLine(r.g.id, r.res.metrics)) }); check(my);
+      if (d) { pickId = d.game_id; shift = d.shift; say = d.say; why = d.reason; }
+    }
+    const g = list.find((x) => x.id === pickId), age = Math.max(4, Math.min(8, realAge + shift));
     $("#gmTitle").textContent = T(g.t); $("#gmCount").textContent = fmt(T("count"), { i: i + 1, n: plan }); $("#gmProg").innerHTML = "";
     const chips = g.lang ? `<div class="lcs"><small class="sub">${T("lc")}</small><div class="chips">${[["ar","lar"],["en","len"],["mix","lmix"]].map(([k, n]) => `<button type="button" class="chip" data-cl="${k}" aria-pressed="${CL === k}">${T(n)}</button>`).join("")}</div></div>` : "";
     const ex = g.ex ? `<div class="exs"><span>${L() === "en" ? "🐱" : "🐱"}<br>${T("exw")[0]}</span><span>${L() === "en" ? "🔑" : "🌙"}<br>${T("exw")[1]}</span></div><p class="micnote">${T("ex6")}</p>` : "";
     const tests = g.note ? `<div class="lcs"><div class="chips"><button type="button" class="chip" id="gmMic">🎤 ${T("mictest")}</button><button type="button" class="chip" id="gmVoice">🔊 ${T("voicetest")}</button></div><small class="sub" id="gmTestOut"></small></div>` : "";
-    body.innerHTML = `<div class="gm-intro"><div class="big">${g.icon}</div><h2>${T(g.t)}</h2><p>${T(g.i)}</p>${ex}${g.note ? `<p class="micnote">${T(g.note)}</p>` : ""}${chips}${tests}
+    body.innerHTML = `<div class="gm-intro"><div class="big">${g.icon}</div><h2>${T(g.t)}</h2><p>${T(g.i)}</p>${say ? `<p class="agentsay">💬 ${esc(say)}</p>` : ""}${why ? `<p class="agtrace">🧠 ${esc(why)} · ${shift > 0 ? "harder" : shift < 0 ? "easier" : "same level"}</p>` : ""}${ex}${g.note ? `<p class="micnote">${T(g.note)}</p>` : ""}${chips}${tests}
       <details class="vset"><summary>🔊 ${T("vs")}</summary><div id="vsBox"></div></details><button class="pill" id="gmGo" type="button"><span>${T("start")}</span><b>▶</b></button></div>`;
     fillVoices($("#vsBox"));
     body.querySelectorAll("[data-cl]").forEach((b) => (b.onclick = () => { CL = b.dataset.cl; body.querySelectorAll("[data-cl]").forEach((x) => x.setAttribute("aria-pressed", x === b)); }));
@@ -491,16 +500,16 @@
       $("#gmMic").onclick = async () => { micOK = true; out.textContent = T("micsay"); const r = await listen(tl(), 7000, () => (out.textContent = T("micgo")), 1200); out.textContent = r.alts.length ? T("micheard") + " " + r.alts[0] : errMsg(r.err || "silent"); };
       $("#gmVoice").onclick = async () => { out.textContent = "…"; const w = tl() === "en" ? "hello" : "مرحبا", r = await speak(w, tl()); out.textContent = r.ok ? T("voiceok") : T("voicebad"); };
     }
-    speak(T(g.i), L() === "en" ? "en" : "ar");
+    speak((say ? say + ". " : "") + T(g.i), L() === "en" ? "en" : "ar");
     await new Promise((r) => ($("#gmGo").onclick = r)); check(my); if (window.speechSynthesis) speechSynthesis.cancel();
     const ctx = { body, age, check: () => check(my), prog: (k, n) => { $("#gmProg").innerHTML = Array.from({ length: n }, (_, j) => `<i class="${j < k ? "on" : ""}"></i>`).join(""); } };
     const res = await g.run(ctx); check(my); results.push({ g, res });
-    window.Tiflan.update((q) => { q.games = q.games || {}; q.games[g.id] = { ts: Date.now(), age, lang: CL, metrics: res.metrics, trials: res.trials, traces: res.traces }; });
+    window.Tiflan.update((q) => { q.games = q.games || {}; q.games[g.id] = { ts: Date.now(), age, tierShift: shift, agentWhy: why, lang: CL, metrics: res.metrics, trials: res.trials, traces: res.traces }; });
     window.Tiflan.log("Game Master", g.id + " " + JSON.stringify(res.metrics));
-    const last = i === Math.min(GAMES.length, plan) - 1;
+    remaining = remaining.filter((id) => id !== pickId); const last = remaining.length === 0;
     body.innerHTML = `<div class="gm-intro"><div class="big">🌟🌟🌟</div><h2>${T("well")}</h2><button class="pill" id="gmNext" type="button"><span>${T(last ? "cont" : "next")}</span><b>↗</b></button></div>`;
     speak(T("well"), L() === "en" ? "en" : "ar"); await new Promise((r) => ($("#gmNext").onclick = r)); check(my);
-    if (!last) return play(i + 1, results, my);
+    if (!last) return play(i + 1, results, my, remaining);
     summary(results);
   }
   function summary(results) {
@@ -518,5 +527,5 @@
   if ($("#gmClose")) $("#gmClose").onclick = close;
   addEventListener("keydown", (e) => { if (e.key === "Escape" && $("#game") && !$("#game").hidden) close(); });
   window.TiflanListen = listen; window.TiflanMicMsg = errMsg; window.TiflanMicReset = () => { micOK = true; };
-  window.TiflanGamesTest = { game1, game6, TRA, game2, bothOn, savedVoice, translit, game3, speak, listen, listen, speak, game3, game4, pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
+  window.TiflanGamesTest = { GAMES, play, game1, game6, TRA, game2, bothOn, savedVoice, translit, game3, speak, listen, listen, speak, game3, game4, pickFresh, genWord, wordScore, nameMatch, rhymeTrial, soundTrial, RH, DIS, ST, BANK, LENS, G4, WIN, A, GRP };
 })();

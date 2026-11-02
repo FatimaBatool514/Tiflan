@@ -43,3 +43,10 @@ Microphone problems? Open /mic-test.html on the same address and run the three t
 
 - Babies: look only at the cursor (no random looking). Optional: add assets/boy-front.webp and assets/girl-front.webp to make them look straight when the cursor is still.
 - Games 2 and 6: tap a picture to hear its name (Arabic, then Latin spelling), tap again or press the check mark to choose.
+
+## AI agents (Step 11)
+- Orchestrator Agent (games.js + agent.js): an AI model picks the next game and difficulty (-1 / 0 / +1) from the child's results so far, via the start_game tool.
+- Intake Agent (intake.js): a free conversation with the mother; the model saves facts with record_answer and ends with finish_intake.
+- Guardian Agent (agent.js): every sentence from the model is checked; diagnosis words, disorder names and medical advice are blocked.
+- Scoring stays rule-based on purpose. Any AI failure falls back to the built-in questions and fixed game order.
+- Setup: see worker/gemini-proxy.js header. Add ?trace=1 to the address (or press the magnifier in the chat) to see the agent's tool calls.

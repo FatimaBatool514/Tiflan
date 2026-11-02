@@ -71,6 +71,7 @@
     if (done.length < S.length) notes.push(E("بعض الألعاب لم تُلعب بعد، لذلك النتيجة أقل اكتمالاً.","Some games were not played, so this result is less complete."));
     if (S.some((s) => s.lowConf)) notes.push(E("قياس السرعة اعتمد جزئياً على الضغط اليدوي.","Speed was partly measured from manual taps."));
     if ((g.g3 && g.g3.metrics.scored) || (g.g4 && g.g4.metrics.scored)) notes.push(E("نطق طفلك فُحص بالتعرف التلقائي على الكلام وقد يخطئ مع الأطفال، فاعتبري هذه النتائج إشارة تقريبية.","Your child's speech was checked by automatic speech recognition, which can mishear children. Treat those results as a rough signal."));
+    if (Object.values(g).some((x) => x && x.tierShift)) notes.push(E("عدّل وكيل الذكاء الاصطناعي صعوبة بعض الألعاب أثناء الجلسة، لذا قد تعكس النتائج مواد أسهل أو أصعب.","The AI agent adapted the difficulty of some games during the session, so results may reflect easier or harder items."));
     return { ts: Date.now(), band, overall, points, skills: S, notes, trace: T, fam, ctx };
   }
 

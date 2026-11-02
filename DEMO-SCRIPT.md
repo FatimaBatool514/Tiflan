@@ -29,3 +29,9 @@ Open the app with `?demo=1` at the end of the URL (or tap "Demo mode" on the fir
 - [ ] Open the site once online so fonts cache for offline use; test airplane mode.
 - [ ] Test on the exact phone and browser you will present with.
 - [ ] Hard refresh to get the latest files.
+
+## If the AI agents are switched on (js/config.js has your Worker address)
+- Say it exactly: "An AI model chooses the next game and its difficulty from the child's results, and runs the intake conversation using tools. Scoring stays rule-based on purpose. A Guardian blocks diagnosis wording."
+- Open the chat with ?trace=1 (or press the magnifier) to show the tool calls: record_answer(...), finish_intake(), start_game(...).
+- Show "Behind the scenes" to show the Orchestrator and Guardian entries in the event log.
+- Have the fallback ready: turn off Wi-Fi once to show Tiflan still works on its built-in rules.
