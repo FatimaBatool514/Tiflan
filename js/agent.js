@@ -1,7 +1,7 @@
 // AI agent engine: talks to Gemini through your Cloudflare Worker, runs the tool-calling loop, and applies the Guardian.
 // Without an aiEndpoint in js/config.js every function here returns null and Tiflan uses its built-in rules.
 (() => {
-  const VERSION = "26", KEY = "tiflan-ai-endpoint";
+  const VERSION = "27", KEY = "tiflan-ai-endpoint";
   const stored = () => { try { return localStorage.getItem(KEY) || ""; } catch (e) { return ""; } };
   // Address priority: the one saved inside the app on this device (AI sheet) > js/config.js. The value "off" turns AI off on this device.
   const cfg = () => { const s = stored(); if (s === "off") return ""; return s || (window.TIFLAN_CONFIG && window.TIFLAN_CONFIG.aiEndpoint) || ""; };
@@ -41,7 +41,7 @@
         const { name, args } = p.functionCall; let out;
         try { out = handlers[name] ? await handlers[name](args || {}) : { error: "unknown tool " + name }; } catch (e) { out = { error: String((e && e.message) || e) }; }
         steps.push({ name, args: args || {}, out }); log(agent, "🛠 " + name + "(" + JSON.stringify(args || {}).slice(0, 150) + ") → " + JSON.stringify(out).slice(0, 110));
-        answers.push({ functionResponse: { name, response: out } });
+        answers.push({ functionResponse: Object.assign({ name, response: out }, p.functionCall.id ? { id: p.functionCall.id } : {}) });      // Gemini 3.x: result must carry the call id and name
       }
       contents.push({ role: "user", parts: answers });
       if (stopAfterTools) return { text, steps };

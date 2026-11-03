@@ -2,15 +2,17 @@
 // Variables to set in Cloudflare (Settings > Variables and Secrets):
 //   GEMINI_API_KEY  (Secret, required)
 //   ALLOWED_ORIGIN  (your site exactly, e.g. https://tiflan-screeningvercelapp.vercel.app  with no trailing slash)
-//   MODEL           (optional, default below; check Google AI Studio for the current free model name)
-//   THINKING_BUDGET (optional number, e.g. 0 to make Gemini 2.5 Flash faster and cheaper)
+//   MODEL           (optional; default gemini-3.8-flash. If Google retires a model, put the new name Google suggests in the error message here)
+//   THINKING_LEVEL  (optional: low | medium | high | off. Default "low" for gemini-3.x models = fast replies)
+//   THINKING_BUDGET (optional number, ONLY for old gemini-2.5 models; ignored otherwise)
+//   TEMPERATURE     (optional; leave unset to use the model default)
 const MAX_BODY = 30000;
 export default {
   async fetch(req, env) {
     const origin = req.headers.get("Origin") || "", allowed = env.ALLOWED_ORIGIN || "*";
     const cors = { "Access-Control-Allow-Origin": allowed, "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Allow-Methods": "POST,GET,OPTIONS", "Vary": "Origin" };
     const send = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { ...cors, "Content-Type": "application/json" } });
-    const model = env.MODEL || "gemini-2.5-flash";
+    const model = (env.MODEL || "gemini-3.8-flash").replace(/^models\//, "");
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     if (req.method === "GET") return send({ ok: true, model, tools: true, keySet: !!env.GEMINI_API_KEY });      // open the Worker address in a browser to check it is alive
     if (req.method !== "POST") return send({ error: "POST only" }, 405);
@@ -25,9 +27,12 @@ export default {
       contents = [{ role: "user", parts: [{ text: String(b.prompt) }] }];
     }
     if (contents.length > 60) return send({ error: "conversation too long" }, 400);
-    const payload = { systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { maxOutputTokens: 700, temperature: 0.4 } };
+    const payload = { systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { maxOutputTokens: 1500 } };
+    if (env.TEMPERATURE) payload.generationConfig.temperature = Number(env.TEMPERATURE);
     if (Array.isArray(b.tools) && b.tools.length) { payload.tools = [{ functionDeclarations: b.tools.slice(0, 8) }]; if (b.toolConfig) payload.toolConfig = b.toolConfig; }
-    if (env.THINKING_BUDGET !== undefined && env.THINKING_BUDGET !== "") payload.generationConfig.thinkingConfig = { thinkingBudget: Number(env.THINKING_BUDGET) };
+    const level = env.THINKING_LEVEL === "off" ? "" : env.THINKING_LEVEL || (/^gemini-3/.test(model) ? "low" : "");
+    if (level) payload.generationConfig.thinkingConfig = { thinkingLevel: level };                       // Gemini 3.x uses levels
+    else if (env.THINKING_BUDGET !== undefined && env.THINKING_BUDGET !== "" && /2\.5/.test(model)) payload.generationConfig.thinkingConfig = { thinkingBudget: Number(env.THINKING_BUDGET) };   // old 2.5 models only
     let r, j;
     try {
       r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, { method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY }, body: JSON.stringify(payload) });
