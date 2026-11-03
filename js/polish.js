@@ -2,20 +2,28 @@
 (() => {
   const $ = (s) => document.querySelector(s), html = document.documentElement, LG = () => html.lang;
   const X = (ar, en) => ({ ar, en });
-  Object.assign(I18N.ar, { nav2:"خلف الكواليس", nav3:"الخصوصية", m_demo:"عرض تجريبي", m_agents:"خلف الكواليس", m_priv:"الخصوصية" });
-  Object.assign(I18N.en, { nav2:"Behind the scenes", nav3:"Privacy", m_demo:"Demo mode", m_agents:"Behind the scenes", m_priv:"Privacy" });
+  Object.assign(I18N.ar, { m_ai:"الذكاء الاصطناعي", nav2:"خلف الكواليس", nav3:"الخصوصية", m_demo:"عرض تجريبي", m_agents:"خلف الكواليس", m_priv:"الخصوصية" });
+  Object.assign(I18N.en, { m_ai:"AI helper", nav2:"Behind the scenes", nav3:"Privacy", m_demo:"Demo mode", m_agents:"Behind the scenes", m_priv:"Privacy" });
   const S = {
-    ar: { demo:"🎬 وضع العرض التجريبي: طفل افتراضي (لا يُحفظ شيء)", exit:"خروج", ag_t:"خلف الكواليس: وكلاء طفلان", ag_s:"كل وكيل وحدة مستقلة لها مدخلات ومخرجات. هذا ما فعله كل واحد في هذه الجلسة.",
+    ar: { ai_t:"🤖 مساعد الذكاء الاصطناعي", ai_s:"طفلان يعمل بدون ذكاء اصطناعي. لتشغيله ألصقي عنوان مساعد Cloudflare الذي أنشأتِه.", ai_url:"عنوان المساعد", ai_save:"حفظ واختبار", ai_off:"إيقاف الذكاء الاصطناعي", ai_test:"أرسلي رسالة تجربة إلى Gemini",
+      ai_trace:"إظهار خطوات الوكيل (الأسطر الزرقاء)", ai_orig:"يجب أن تكون قيمة ALLOWED_ORIGIN في Cloudflare هذه بالضبط:", ai_chk:"جارٍ الفحص...", ai_badurl:"العنوان يجب أن يبدأ بـ https://", ai_saved:"تم الحفظ على هذا الجهاز. اغلقي هذه الشاشة وابدئي الأسئلة أو الألعاب من جديد.",
+      ai_none:"الذكاء الاصطناعي متوقف: لا يوجد عنوان مساعد. الصقيه في الحقل أدناه (أو ضعيه في js/config.js).", ai_unreach:"لا يمكن الوصول إلى المساعد. تأكدي من العنوان، ومن أن ALLOWED_ORIGIN في Cloudflare يطابق عنوان هذا الموقع بالضبط (من دون شرطة مائلة في النهاية).",
+      ai_http:"أجاب المساعد بخطأ رقم", ai_nokey:"المساعد يعمل لكن مفتاح GEMINI_API_KEY غير موجود في Cloudflare (Settings ← Variables and Secrets). أضيفيه كنوع Secret ثم اضغطي Deploy.", ai_ok:"✅ الذكاء الاصطناعي يعمل. المساعد متاح والمفتاح موجود، والنموذج:",
+      ai_e403:"رفض المساعد هذا الموقع: ALLOWED_ORIGIN لا يطابق العنوان.", ai_e500:"مفتاح GEMINI_API_KEY غير مضاف في Cloudflare.", ai_reply:"✅ رد Gemini:", ai_ver:"نسخة التطبيق", demo:"🎬 وضع العرض التجريبي: طفل افتراضي (لا يُحفظ شيء)", exit:"خروج", ag_t:"خلف الكواليس: وكلاء طفلان", ag_s:"كل وكيل وحدة مستقلة لها مدخلات ومخرجات. هذا ما فعله كل واحد في هذه الجلسة.",
       done:"تم", wait:"بانتظار البيانات", log:"سجل الأحداث", nolog:"لا أحداث بعد. العبي جلسة أولاً أو جرّبي العرض التجريبي.", flow:"مسار البيانات",
       pr_t:"مركز الخصوصية", pr_s:"ما نحفظه، وما قد يخرج من جهازك، بصراحة.", st:"محفوظ على هذا الجهاز الآن", nost:"لا نحفظ أبداً", cloud:"ما قد يصل إلى جهات خارجية", none:"لا توجد بيانات محفوظة على هذا الجهاز.",
       dl:"⬇ نزّلي بياناتي (JSON)", wipe:"🗑 احذفي كل البيانات", wiped:"تم حذف كل البيانات.", legal:"قبل أي استخدام حقيقي: راجعوا قانون حماية البيانات الشخصية في الإمارات وسياسات هيئة الصحة بدبي للبيانات الصحية، واحصلوا على مراجعة سريرية وأخلاقية.", on:"مفعّل", off:"غير مفعّل" },
-    en: { demo:"🎬 Demo mode: sample child (nothing is saved)", exit:"Exit", ag_t:"Behind the scenes: Tiflan's agents", ag_s:"Each agent is a separate module with defined inputs and outputs. Here is what each did in this session.",
+    en: { ai_t:"🤖 AI helper", ai_s:"Tiflan works without AI. To switch it on, paste the address of the Cloudflare helper you created.", ai_url:"Helper address", ai_save:"Save and test", ai_off:"Turn AI off", ai_test:"Send a test message to Gemini",
+      ai_trace:"Show agent steps (the blue lines)", ai_orig:"ALLOWED_ORIGIN in Cloudflare must be exactly:", ai_chk:"Checking...", ai_badurl:"The address must start with https://", ai_saved:"Saved on this device. Close this screen and start the questions or games again.",
+      ai_none:"AI is OFF: there is no helper address yet. Paste it in the box below (or put it in js/config.js).", ai_unreach:"Cannot reach the helper. Check the address, and check that ALLOWED_ORIGIN in Cloudflare matches this site's address exactly (no slash at the end).",
+      ai_http:"The helper answered with error", ai_nokey:"The helper works, but GEMINI_API_KEY is missing in Cloudflare (Settings > Variables and Secrets). Add it as a Secret and click Deploy.", ai_ok:"✅ AI is ON. Helper reachable, key found, model:",
+      ai_e403:"The helper refused this site: ALLOWED_ORIGIN does not match the address.", ai_e500:"GEMINI_API_KEY is not set in Cloudflare.", ai_reply:"✅ Gemini replied:", ai_ver:"App version", demo:"🎬 Demo mode: sample child (nothing is saved)", exit:"Exit", ag_t:"Behind the scenes: Tiflan's agents", ag_s:"Each agent is a separate module with defined inputs and outputs. Here is what each did in this session.",
       done:"Done", wait:"Waiting for data", log:"Event log", nolog:"No events yet. Play a session first or try the demo.", flow:"Data flow",
       pr_t:"Privacy centre", pr_s:"What we store, and what may leave your device, honestly.", st:"Stored on this device right now", nost:"We never store", cloud:"What may reach third parties", none:"No data is stored on this device.",
       dl:"⬇ Download my data (JSON)", wipe:"🗑 Delete all data", wiped:"All data deleted.", legal:"Before any real use: review the UAE Personal Data Protection Law and Dubai Health Authority health-data policies, and get clinical and ethics review.", on:"On", off:"Off" }
   };
   const T = (k) => S[LG()][k];
-  const prof = () => window.Tiflan.profile(), cfgAI = () => !!(window.TIFLAN_CONFIG && window.TIFLAN_CONFIG.aiEndpoint);
+  const prof = () => window.Tiflan.profile(), cfgAI = () => !!(window.TiflanAgent && window.TiflanAgent.available());
   const pad = (n) => String(n).padStart(2, "0"), hm = (t) => { const d = new Date(t); return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()); };
 
   /* ---------- demo ---------- */
@@ -91,13 +99,40 @@
   }
   Object.assign(I18N.ar, { wiped:S.ar.wiped }); Object.assign(I18N.en, { wiped:S.en.wiped });
 
+
+  /* ---------- AI helper sheet: set the address, check it, send a test message ---------- */
+  function renderAi() {
+    const A = window.TiflanAgent, l = LG(); let raw = ""; try { raw = localStorage.getItem("tiflan-ai-endpoint") || ""; } catch (e) {}
+    const shown = raw && raw !== "off" ? raw : (window.TIFLAN_CONFIG && window.TIFLAN_CONFIG.aiEndpoint) || "";
+    let tr = ""; try { tr = localStorage.getItem("tiflan-trace") || ""; } catch (e) {}
+    $("#aiBody").innerHTML = `<h2>${T("ai_t")}</h2><p class="sub">${T("ai_s")}</p><div id="aiStatus" class="note2">${T("ai_chk")}</div>
+      <label class="vrow"><span>${T("ai_url")}</span><input id="aiUrl" type="url" dir="ltr" placeholder="https://tiflan-ai.YOURNAME.workers.dev" value="${shown.replace(/"/g, "")}"></label>
+      <small class="micnote">${T("ai_orig")} <b dir="ltr">${location.origin}</b></small>
+      <div class="mrow"><button class="pill" id="aiSave" type="button"><span>${T("ai_save")}</span></button><button class="pill alt" id="aiOff" type="button"><span>${T("ai_off")}</span></button></div>
+      <button class="ghost" id="aiChat" type="button">💬 ${T("ai_test")}</button><pre class="aiout" id="aiOut"></pre>
+      <label class="chk"><input type="checkbox" id="aiTrace" ${tr === "1" || (tr !== "0" && A.available()) ? "checked" : ""}><span>${T("ai_trace")}</span></label>
+      <small class="micnote" dir="ltr">${T("ai_ver")} ${A.version} · AI: ${A.available() ? "ON" : "OFF"}</small>`;
+    const status = async () => {
+      const el = $("#aiStatus"); el.textContent = T("ai_chk"); const r = await A.check();
+      el.textContent = r.code === "ok" ? T("ai_ok") + " " + r.model : r.code === "none" ? T("ai_none") : r.code === "nokey" ? T("ai_nokey") : r.code === "http" ? T("ai_http") + " " + r.status : T("ai_unreach");
+      el.style.borderInlineStart = "4px solid " + (r.ok ? "#4FD1A5" : "#FF8A6B");
+    };
+    $("#aiSave").onclick = async () => { const v = $("#aiUrl").value.trim().replace(/\/+$/, ""); if (v && !/^https:\/\/\S+$/.test(v)) { $("#aiOut").textContent = T("ai_badurl"); return; } A.setEndpoint(v); $("#aiOut").textContent = T("ai_saved"); await status(); };
+    $("#aiOff").onclick = async () => { A.setEndpoint("off"); await status(); renderAiLabel(); };
+    $("#aiChat").onclick = async () => { const o = $("#aiOut"); o.textContent = "..."; try { o.textContent = T("ai_reply") + "\n" + (await A.testChat()); } catch (e) { const m = String(e.message || e); o.textContent = /origin not allowed/.test(m) ? T("ai_e403") + "\n" + location.origin : /GEMINI_API_KEY/.test(m) ? T("ai_e500") : /Failed to fetch|abort|NetworkError/i.test(m) ? T("ai_unreach") : "⚠️ " + m; } };
+    $("#aiTrace").onchange = (e) => { try { localStorage.setItem("tiflan-trace", e.target.checked ? "1" : "0"); } catch (x) {} A.applyTrace(); };
+    status();
+  }
+  const renderAiLabel = () => { const v = $("#aiBody small.micnote[dir=ltr]"); if (v) v.textContent = T("ai_ver") + " " + window.TiflanAgent.version + " · AI: " + (window.TiflanAgent.available() ? "ON" : "OFF"); };
+  window.openAiSheet = () => open("#aiSheet", renderAi);
+
   const open = (id, fn) => { $(id).hidden = false; document.body.style.overflow = "hidden"; fn(); };
-  const closeAll = () => { ["#agentsSheet", "#privSheet"].forEach((s) => ($(s).hidden = true)); document.body.style.overflow = ""; };
+  const closeAll = () => { ["#agentsSheet", "#privSheet", "#aiSheet"].forEach((s) => ($(s).hidden = true)); document.body.style.overflow = ""; };
   document.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); const k = b.dataset.open;
-    if (k === "demo") startDemo(); else if (k === "agents") open("#agentsSheet", renderAgents); else open("#privSheet", renderPriv); }));
-  $("#agClose").onclick = $("#prClose").onclick = closeAll;
+    if (k === "demo") startDemo(); else if (k === "agents") open("#agentsSheet", renderAgents); else if (k === "ai") window.openAiSheet(); else open("#privSheet", renderPriv); }));
+  $("#agClose").onclick = $("#prClose").onclick = $("#aiClose").onclick = closeAll;
   addEventListener("keydown", (e) => { if (e.key === "Escape") closeAll(); });
-  document.addEventListener("tiflan:lang", () => { if (!$("#agentsSheet").hidden) renderAgents(); if (!$("#privSheet").hidden) renderPriv(); if ($("#demoBar")) showBar(); });
+  document.addEventListener("tiflan:lang", () => { if (!$("#agentsSheet").hidden) renderAgents(); if (!$("#privSheet").hidden) renderPriv(); if (!$("#aiSheet").hidden) renderAi(); if ($("#demoBar")) showBar(); });
   if (/[?&]demo=1/.test(location.search)) setTimeout(startDemo, 300);
   if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) { const had = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener("controllerchange", () => { if (had && !window.__swReloaded) { window.__swReloaded = true; location.reload(); } }); navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {}); }
 })();

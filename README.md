@@ -50,3 +50,4 @@ Microphone problems? Open /mic-test.html on the same address and run the three t
 - Guardian Agent (agent.js): every sentence from the model is checked; diagnosis words, disorder names and medical advice are blocked.
 - Scoring stays rule-based on purpose. Any AI failure falls back to the built-in questions and fixed game order.
 - Setup: see worker/gemini-proxy.js header. Add ?trace=1 to the address (or press the magnifier in the chat) to see the agent's tool calls.
+- AI helper sheet (hero > "AI helper"): paste the Cloudflare helper address inside the app, check status, send a test message, show/hide agent steps. No GitHub edit needed.

@@ -1,14 +1,19 @@
 // AI agent engine: talks to Gemini through your Cloudflare Worker, runs the tool-calling loop, and applies the Guardian.
 // Without an aiEndpoint in js/config.js every function here returns null and Tiflan uses its built-in rules.
 (() => {
-  const cfg = () => (window.TIFLAN_CONFIG && window.TIFLAN_CONFIG.aiEndpoint) || "";
+  const VERSION = "26", KEY = "tiflan-ai-endpoint";
+  const stored = () => { try { return localStorage.getItem(KEY) || ""; } catch (e) { return ""; } };
+  // Address priority: the one saved inside the app on this device (AI sheet) > js/config.js. The value "off" turns AI off on this device.
+  const cfg = () => { const s = stored(); if (s === "off") return ""; return s || (window.TIFLAN_CONFIG && window.TIFLAN_CONFIG.aiEndpoint) || ""; };
   const available = () => !!cfg();
+  const setEndpoint = (v) => { try { v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY); } catch (e) {} applyTrace(); };
+  const applyTrace = () => { let p = ""; try { p = localStorage.getItem("tiflan-trace") || ""; } catch (e) {} if (document.body) document.body.classList.toggle("show-trace", p === "1" || (p !== "0" && available())); };
   const log = (agent, msg) => { const T = window.Tiflan || (window.Tiflan = {}); (T._log = T._log || []).push({ t: Date.now(), agent, msg: String(msg).slice(0, 400) }); };
-  if (/[?&]trace=1/.test(location.search) && document.body) document.body.classList.add("show-trace");
+  if (/[?&]trace=1/.test(location.search)) { try { localStorage.setItem("tiflan-trace", "1"); } catch (e) {} }
 
   async function post(body, ms = 20000) {
     const c = new AbortController(), t = setTimeout(() => c.abort(), ms);
-    try { const r = await fetch(cfg(), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: c.signal }); if (!r.ok) throw new Error("http " + r.status); return await r.json(); }
+    try { const r = await fetch(cfg(), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: c.signal }); if (!r.ok) { let m = ""; try { m = (await r.json()).error || ""; } catch (e) {} throw new Error(m || "http " + r.status); } return await r.json(); }
     finally { clearTimeout(t); }
   }
 
@@ -64,5 +69,15 @@
     const shift = Math.max(-1, Math.min(1, Math.round(Number(out.difficulty_shift) || 0))), say = guard(out.encouragement).text.slice(0, 120);
     return { game_id: out.game_id, shift, reason: String(out.reason || "").slice(0, 200), say };
   }
-  window.TiflanAgent = { available, run, guard, pickNext, log, post };
+  // Is the helper alive? Returns { ok, code, model, status }.
+  async function check() {
+    const url = cfg(); if (!url) return { ok: false, code: "none" };
+    try { const r = await fetch(url, { method: "GET" }); if (!r.ok) return { ok: false, code: "http", status: r.status };
+      const j = await r.json(); return j.keySet ? { ok: true, code: "ok", model: j.model } : { ok: false, code: "nokey" }; }
+    catch (e) { return { ok: false, code: "unreachable" }; }
+  }
+  // End-to-end test: Browser -> Worker -> Gemini -> back.
+  const testChat = async () => { const j = await post({ system: "You are a friendly assistant. Reply with one short sentence in Arabic.", prompt: "Say hello to a mother." }, 20000); return (j.text || "").trim() || "(empty reply)"; };
+  applyTrace();
+  window.TiflanAgent = { available, endpoint: cfg, setEndpoint, check, testChat, applyTrace, version: VERSION, run, guard, pickNext, log, post };
 })();

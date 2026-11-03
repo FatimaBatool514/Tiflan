@@ -355,3 +355,7 @@ body.show-trace .bub.tool{display:block}
 .agtrace{display:none;font-size:.78rem;color:var(--aqua);direction:ltr}
 body.show-trace .agtrace{display:block}
 .tog{margin-inline-start:6px}
+
+.aiout{white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,.28);border-radius:12px;padding:10px 12px;font-size:.85rem;min-height:1.2em;margin:0}
+#aiBadge{cursor:pointer;text-decoration:underline dotted}
+#aiStatus{line-height:1.7}

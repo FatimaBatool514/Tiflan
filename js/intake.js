@@ -4,12 +4,12 @@
   const L = () => html.lang, T = (k) => I18N[L()][k];
   Object.assign(I18N.ar, { in_agent:"طفلان · وكيل الاستقبال", in_ph:"اكتبي إجابتك هنا...", in_done:"شكراً لك!", in_cont:"متابعة إلى الألعاب", in_redo:"إعادة الأسئلة",
     in_note:"هذه المعلومات تساعدنا على فهم الصورة، وهي ليست تشخيصاً.", in_listen:"أسمعك...", in_idle:"جاهز", in_speak:"يتحدث",
-    in_ai_on:"الذكاء الاصطناعي مفعّل (Gemini): يُرسل نص حديثك وعمر الطفل فقط، بلا اسم ولا رمز ولا صوت.", in_think:"يفكر...", in_aifail:"تعذّر الاتصال بالمساعد الذكي، نكمل بأسئلة بسيطة.", in_ai_off:"الأسئلة تعمل بقواعد على جهازك، بلا ذكاء سحابي.",
+    in_ai_on:"الذكاء الاصطناعي مفعّل (Gemini): يُرسل نص حديثك وعمر الطفل فقط، بلا اسم ولا رمز ولا صوت.", in_think:"يفكر...", in_aifail:"تعذّر الاتصال بالمساعد الذكي، نكمل بأسئلة بسيطة.", in_ai_off:"الأسئلة تعمل بقواعد على جهازك، بلا ذكاء سحابي. (اضغطي هنا لإعداد الذكاء الاصطناعي)",
     in_stt:"قد يعالج المتصفح الصوت عبر خدمة سحابية. لا نحفظ أي تسجيل.", in_nomic:"المتصفح لا يدعم التعرف على الصوت. اكتبي أو اختاري من الأزرار.",
     in_deny:"لم يُسمح بالميكروفون. اكتبي أو اختاري من الأزرار.", in_nomatch:"ما فهمت تماماً، اختاري أقرب إجابة من الأزرار.", in_flags:"نقاط للمتابعة", step5:"الألعاب تأتي في الخطوة 5." });
   Object.assign(I18N.en, { in_agent:"Tiflan · Intake Agent", in_ph:"Type your answer here...", in_done:"Thank you!", in_cont:"Continue to the games", in_redo:"Redo the questions",
     in_note:"This information helps us see the full picture. It is not a diagnosis.", in_listen:"Listening...", in_idle:"Ready", in_speak:"Speaking",
-    in_ai_on:"AI is on (Gemini): only the text of your chat and the child's age are sent, with no name, ID or audio.", in_think:"Thinking...", in_aifail:"The AI helper is unavailable, so we continue with simple questions.", in_ai_off:"Questions run on rules in your browser, with no cloud AI.",
+    in_ai_on:"AI is on (Gemini): only the text of your chat and the child's age are sent, with no name, ID or audio.", in_think:"Thinking...", in_aifail:"The AI helper is unavailable, so we continue with simple questions.", in_ai_off:"Questions run on rules in your browser, with no cloud AI. (Tap here to set up AI)",
     in_stt:"Your browser may process speech through a cloud service. We store no recordings.", in_nomic:"This browser has no speech recognition. Type or tap a button.",
     in_deny:"Microphone access was denied. Type or tap a button.", in_nomatch:"I didn't quite get that. Please tap the closest answer.", in_flags:"Follow-up points", step5:"The games arrive in Step 5." });
   I18N.ar.go = "ابدئي المحادثة مع طفلان";
@@ -51,7 +51,7 @@
   }
   window.TiflanMatch = { match, norm, Q };
 
-  const cfg = () => (window.TIFLAN_CONFIG && window.TIFLAN_CONFIG.aiEndpoint) || "";
+  const cfg = () => (window.TiflanAgent ? window.TiflanAgent.endpoint() : "");
   async function ai(system, prompt) {
     if (!cfg()) return null;
     try {
@@ -209,7 +209,8 @@
   $("#inText").onkeydown = (e) => { if (e.key === "Enter") submit($("#inText").value); };
   $("#vToggle").onclick = (e) => { voiceOn = !voiceOn; e.currentTarget.textContent = voiceOn ? "🔊" : "🔇"; if (!voiceOn && window.speechSynthesis) speechSynthesis.cancel(); };
   $("#inClose").onclick = close;
-  if ($("#trToggle")) $("#trToggle").onclick = () => document.body.classList.toggle("show-trace");
+  if ($("#trToggle")) $("#trToggle").onclick = () => { const on = document.body.classList.toggle("show-trace"); try { localStorage.setItem("tiflan-trace", on ? "1" : "0"); } catch (e) {} };
+  $("#aiBadge").onclick = () => { if (window.openAiSheet) window.openAiSheet(); };
   $("#inRedo").onclick = () => start(true);
   $("#inRes").onclick = () => { close(); window.openResults && window.openResults(); };
   $("#inCont").onclick = () => { close(); window.openGames ? window.openGames() : window.tiflanToast("step5"); };
